@@ -1,4 +1,4 @@
-﻿const { embedErro } = require("./utils/embeds");
+﻿const { embedErro } = require("../utils/embeds");
 
 module.exports = async (message, context) => {
     const { canalPyaku } = context;

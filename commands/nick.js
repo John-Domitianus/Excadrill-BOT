@@ -1,4 +1,4 @@
-﻿const { embedSucesso, embedErro } = require("./utils/embeds");
+﻿const { embedSucesso, embedErro } = require("../utils/embeds");
 
 module.exports = async (message, context) => {
     const { esperandoNick, controleDiario } = context;
