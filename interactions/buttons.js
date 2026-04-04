@@ -2,7 +2,7 @@
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
-const adminButtons = require("./adminButtons");
+const adminButtons = require("./admin");
 
 function hoje() {
     const d = new Date();
@@ -165,7 +165,7 @@ module.exports = (client, context) => {
             case "ver_banidos":
             case "limpar_titular":
             case "limpar_reserva":
-                return await require("../adminButtons")(interaction, context, client);
+                return await require("./admin")(interaction, context, client);
 
             default:
                 return erro("Botão não reconhecido.");
