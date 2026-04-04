@@ -69,7 +69,7 @@ module.exports = (client) => {
         await guerraCommand(message, context);
         await adminCommand(message, context);
 
-        // atualizar vari·veis externas caso tenham sido alteradas nos comandos
+        // atualizar vari√°veis externas caso tenham sido alteradas nos comandos
         esperandoNick = context.esperandoNick;
         esperandoBan = context.esperandoBan;
         esperandoUnban = context.esperandoUnban;
