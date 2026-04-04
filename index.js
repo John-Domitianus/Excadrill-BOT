@@ -3,7 +3,7 @@ global.rootDir = __dirname;
 const { Client, GatewayIntentBits } = require("discord.js");
 require("dotenv").config();
 
-const dataManager = require("../services/dataManager");
+const dataManager = require("./services/dataManager");
 
 // Client
 const client = new Client({
@@ -15,7 +15,7 @@ const client = new Client({
 });
 
 // Conexão MongoDB
-require("../database/connect")();
+require("./database/connect")();
 
 (async () => {
     try {
@@ -26,9 +26,9 @@ require("../database/connect")();
             ...dataManager
         };
 
-        require("../events/ready")(client, context);
-        require("../events/messageCreate")(client, context);
-        require("../interactions/buttons")(client, context);
+        require("./events/ready")(client, context);
+        require("./events/messageCreate")(client, context);
+        require("./interactions/buttons")(client, context);
 
         console.log("✅ Bot e contexto inicializados com sucesso!");
     } catch (err) {
