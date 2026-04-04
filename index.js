@@ -19,13 +19,21 @@ require("./database/connect")();
 
 (async () => {
     try {
-        await dataManager.carregarDadosMongo();
+        // Login do bot
+        await client.login(process.env.TOKEN);
 
+        // Cria contexto compartilhado
         const context = {
             client,
-            ...dataManager
+            ...dataManager,
+            dadosCarregados: false
         };
 
+        // Carrega dados do MongoDB
+        await dataManager.carregarDadosMongo();
+        context.dadosCarregados = true;
+
+        // Registra eventos
         require("./events/ready")(client, context);
         require("./events/messageCreate")(client, context);
         require("./interactions/buttons")(client, context);
@@ -35,5 +43,3 @@ require("./database/connect")();
         console.error("❌ Erro ao iniciar o bot:", err);
     }
 })();
-
-client.login(process.env.TOKEN);
