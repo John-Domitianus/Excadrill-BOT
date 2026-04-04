@@ -13,16 +13,31 @@ function pegarHorario() {
     return `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
 }
 
-module.exports = async (interaction, context, client) => {
+module.exports = (client, context) => {
+    client.on("interactionCreate", async (interaction) => {
+
     if (!context.dadosCarregados) return;
-    if (!interaction.isButton()) return;
+        if (!interaction.isButton()) return;
+
+        console.log("BOTÃO:", interaction.customId);
 
     const nome = interaction.member.displayName;
     const hora = pegarHorario();
 
-    const erro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
-    const sucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
-
+        const erro = (msg) => {
+            if (interaction.replied || interaction.deferred) {
+                return interaction.followUp({ embeds: [embedErro(msg)], ephemeral: true });
+            } else {
+                return interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
+            }
+        };
+        const sucesso = (msg) => {
+            if (interaction.replied || interaction.deferred) {
+                return interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
+            } else {
+                return interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
+            }
+        };
     if (context.banidosMakyo.includes(nome)) return erro("Você está banido dos Makyo's.");
 
     switch (interaction.customId) {
@@ -162,10 +177,11 @@ module.exports = async (interaction, context, client) => {
         case "limpar_titular":
         case "limpar_reserva":
             // Aqui você integra a lógica de admin diretamente
-            require("../adminButtons")(interaction, context, client);
-            break;
+            return require("../adminButtons")(interaction, context, client);
 
         default:
             return erro("Botão não reconhecido.");
-    }
+        }
+
+    });
 };
