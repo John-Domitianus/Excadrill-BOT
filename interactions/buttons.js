@@ -20,6 +20,11 @@ module.exports = (client, context) => {
         if (!interaction.isButton()) return;
 
         console.log("BOTÃO FUNCIONANDO:", interaction.customId);
+        // 👇 FORÇA resposta imediata
+        await interaction.reply({
+            content: "Botões Funcionando",
+            ephemeral: true
+        });
 
     const nome = interaction.member.displayName;
     const hora = pegarHorario();
