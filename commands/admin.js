@@ -1,25 +1,31 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { embedErro } = require("../utils/embeds");
+﻿const { embedErro } = require("../utils/embeds");
+const { PermissionsBitField } = require("discord.js");
 
 module.exports = async (message, context) => {
-    const { canalPyaku } = context;
-
     if (message.content !== "!admin") return;
-
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
     return message.reply({
         embeds: [
-            new EmbedBuilder()
-                .setColor(0xFAA61A)
-                .setTitle("🛠️ Painel Admin")
-                .setDescription("Controle total sobre os painéis de Makyo e Guerra.")
+            {
+                color: 0xFAA61A,
+                title: "🛠️ Painel Admin",
+                description: "Aqui você tem controle total sobre os painéis de Makyo e Guerra. Use os botões abaixo para gerenciar filas, resetar filas e ver banidos.",
+                fields: [
+                    { name: "Makyo", value: "Acesse o painel de administração do Makyo para resetar filas, banir/desbanir jogadores.", inline: true },
+                    { name: "Guerra", value: "Acesse o painel de administração da Guerra para limpar titulares/reservas.", inline: true },
+                    { name: "Observação", value: "Somente administradores podem usar este painel." }
+                ]
+            }
         ],
         components: [
-            new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId("admin_guerra").setLabel("Guerra").setStyle(ButtonStyle.Danger)
-            )
+            {
+                type: 1,
+                components: [
+                    { type: 2, style: 1, label: "Makyo", custom_id: "admin_makyo" },
+                    { type: 2, style: 4, label: "Guerra", custom_id: "admin_guerra" }
+                ]
+            }
         ]
     });
 };
