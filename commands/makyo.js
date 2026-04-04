@@ -1,6 +1,6 @@
-﻿const { embedSucesso, embedErro } = require("../utils/embeds");
-const { atualizarListaCompleta } = require("../utils/lista");
-const { limiteCFK, limiteCFK100 } = require("../config/constants");
+﻿const { embedSucesso, embedErro } = require("./utils/embeds");
+const { atualizarListaCompleta } = require("./utils/lista");
+const { limiteCFK, limiteCFK100 } = require("./config/constants");
 
 function hoje() {
     const d = new Date();
