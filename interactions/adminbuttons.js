@@ -21,7 +21,7 @@ module.exports = async (interaction, context, client) => {
     const hasAdmin = interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
     if (!hasAdmin) return erro("Sem permissão.");
 
-    // Função auxiliar para atualizar embeds e botões com segurança
+    // Função auxiliar para atualizar embeds e botões com segurança __
     const atualizarMensagem = async (embeds, components) => {
         try {
             if (interaction.deferred || interaction.replied) {
