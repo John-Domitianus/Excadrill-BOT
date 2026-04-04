@@ -1,5 +1,5 @@
 const { PermissionsBitField } = require("discord.js");
-const { embedSucesso, embedErro } = require("../utils/embeds");
+const { embedSucesso, embedErro } = require("./utils/embeds");
 const {
     canalPyaku,
     canalFilaCompleta,
@@ -10,9 +10,9 @@ const {
     filaCFK100,
     filaGuerra,
     banidosMakyo
-} = require("../services/dataManager");
-const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
-const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
+} = require("./services/dataManager");
+const { atualizarListaCompleta, atualizarListaGuerra } = require("./utils/lista");
+const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("./config/constants");
 
 let esperandoNick = null;
 let esperandoBan = null;
@@ -53,10 +53,10 @@ module.exports = (client) => {
         };
 
         // importar os comandos
-        const nickCommand = require("../commands/nick");
-        const makyoCommand = require("../commands/makyo");
-        const guerraCommand = require("../commands/guerra");
-        const adminCommand = require("../commands/admin");
+        const nickCommand = require("./commands/nick");
+        const makyoCommand = require("./commands/makyo");
+        const guerraCommand = require("./commands/guerra");
+        const adminCommand = require("./commands/admin");
 
         // executar os comandos
         await nickCommand(message, context);
