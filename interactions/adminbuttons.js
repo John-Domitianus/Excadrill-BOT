@@ -1,12 +1,8 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField, EmbedBuilder } = require("discord.js");
+﻿// interactions/adminButtons.js
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField, EmbedBuilder } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
-const {
-    limiteCFK,
-    limiteCFK100,
-    limiteTitular,
-    limiteReserva
-} = require("../config/constants");
+const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
 
 module.exports = async (interaction, context, client) => {
 
@@ -18,17 +14,33 @@ module.exports = async (interaction, context, client) => {
     const sucesso = (msg) =>
         interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
 
+    // Verifica banimento
     if (context.banidosMakyo.includes(nome)) return erro("Você está banido.");
 
+    // Verifica permissões de admin
     const hasAdmin = interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
     if (!hasAdmin) return erro("Sem permissão.");
+
+    // Função auxiliar para atualizar embeds e botões com segurança
+    const atualizarMensagem = async (embeds, components) => {
+        try {
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply({ embeds, components });
+            } else {
+                await interaction.update({ embeds, components });
+            }
+        } catch {
+            // fallback caso update/editReply falhe
+            await interaction.reply({ embeds, components, ephemeral: true });
+        }
+    };
 
     switch (interaction.customId) {
 
         case "admin_makyo":
-            return interaction.update({
-                embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
-                components: [
+            return atualizarMensagem(
+                [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
+                [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder().setCustomId("reset_cfk").setLabel("Reset Makyo").setStyle(ButtonStyle.Danger),
                         new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Reset Avançado").setStyle(ButtonStyle.Danger)
@@ -42,12 +54,12 @@ module.exports = async (interaction, context, client) => {
                         new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                     )
                 ]
-            });
+            );
 
         case "admin_guerra":
-            return interaction.update({
-                embeds: [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
-                components: [
+            return atualizarMensagem(
+                [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
+                [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
                         new ButtonBuilder().setCustomId("limpar_reserva").setLabel("Limpar Reservas").setStyle(ButtonStyle.Danger)
@@ -56,19 +68,20 @@ module.exports = async (interaction, context, client) => {
                         new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                     )
                 ]
-            });
+            );
 
         case "voltar_admin":
-            return interaction.update({
-                embeds: [new EmbedBuilder().setTitle("🛠️ Admin")],
-                components: [
+            return atualizarMensagem(
+                [new EmbedBuilder().setTitle("🛠️ Admin")],
+                [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
                         new ButtonBuilder().setCustomId("admin_guerra").setLabel("Guerra").setStyle(ButtonStyle.Danger)
                     )
                 ]
-            });
+            );
 
+        // =================== MAKYO ===================
         case "reset_cfk":
             context.filaCFK.length = 0;
             await context.salvarDados();
@@ -100,6 +113,7 @@ module.exports = async (interaction, context, client) => {
                 ephemeral: true
             });
 
+        // =================== GUERRA ===================
         case "limpar_titular":
             context.filaGuerra.splice(0, limiteTitular);
             await context.salvarDados();
