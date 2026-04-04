@@ -1,61 +1,76 @@
-﻿const Dados = require("../database/schema");
+﻿const mongoose = require("mongoose");
 
-const controleDiario = {};
-const filaCFK = [];
-const filaCFK100 = [];
-const filaGuerra = [];
-const banidosMakyo = [];
+// Modelo MongoDB
+const DadosSchema = new mongoose.Schema({
+    filaCFK: Array,
+    filaCFK100: Array,
+    filaGuerra: Array,
+    controleDiario: Object,
+    banidosMakyo: Array,
+    ultimaAtualizacao: String
+});
 
-let canalPyaku = null;
-let canalFilaCompleta = null;
+const Dados = mongoose.model("Dados", DadosSchema);
+
+// Estado em memória
+let filaCFK = [];
+let filaCFK100 = [];
+let filaGuerra = [];
+let controleDiario = {};
+let banidosMakyo = [];
 let dadosCarregados = false;
 
+// Carregar dados do MongoDB
 async function carregarDadosMongo() {
-    const dados = await Dados.findOne();
-    if (!dados) return;
-
-    canalPyaku = dados.canalPyaku || null;
-    canalFilaCompleta = dados.canalFilaCompleta || null;
-
-    Object.assign(controleDiario, dados.controleDiario || {});
-
-    filaCFK.push(...(dados.filaCFK || []));
-    filaCFK100.push(...(dados.filaCFK100 || []));
-    filaGuerra.push(...(dados.filaGuerra || []));
-    banidosMakyo.push(...(dados.banidosMakyo || []));
-
-    dadosCarregados = true;
-    console.log("📥 Dados carregados do MongoDB");
+    try {
+        const doc = await Dados.findOne({});
+        if (doc) {
+            filaCFK = doc.filaCFK || [];
+            filaCFK100 = doc.filaCFK100 || [];
+            filaGuerra = doc.filaGuerra || [];
+            controleDiario = doc.controleDiario || {};
+            banidosMakyo = doc.banidosMakyo || [];
+        } else {
+            await new Dados({}).save();
+        }
+        dadosCarregados = true;
+        console.log("[DataManager] Dados carregados com sucesso.");
+    } catch (err) {
+        console.error("[DataManager] Erro ao carregar dados:", err);
+    }
 }
 
+// Salvar dados no MongoDB
 async function salvarDados() {
-    if (!dadosCarregados) return;
-
-    await Dados.findOneAndUpdate(
-        {},
-        {
-            canalPyaku,
-            canalFilaCompleta,
-            controleDiario,
+    try {
+        await Dados.updateOne({}, {
             filaCFK,
             filaCFK100,
             filaGuerra,
-            banidosMakyo
-        },
-        { upsert: true }
-    );
-    console.log("💾 Dados salvos no MongoDB");
+            controleDiario,
+            banidosMakyo,
+            ultimaAtualizacao: new Date().toISOString()
+        }, { upsert: true });
+        console.log("[DataManager] Dados salvos.");
+    } catch (err) {
+        console.error("[DataManager] Erro ao salvar dados:", err);
+    }
 }
 
+// Reset diário
+function resetDiario() {
+    controleDiario = {};
+}
+
+// Exportando tudo em um objeto único de contexto
 module.exports = {
-    controleDiario,
     filaCFK,
     filaCFK100,
     filaGuerra,
+    controleDiario,
     banidosMakyo,
-    canalPyaku,
-    canalFilaCompleta,
     dadosCarregados,
     carregarDadosMongo,
-    salvarDados
+    salvarDados,
+    resetDiario
 };
