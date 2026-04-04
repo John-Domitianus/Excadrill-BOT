@@ -2,7 +2,7 @@
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
-const adminButtons = require("../interactions/adminButtons");
+const adminButtons = require("../interactions/adminbuttons");
 
 function hoje() {
     const d = new Date();
