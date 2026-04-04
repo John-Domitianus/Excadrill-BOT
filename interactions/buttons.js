@@ -19,7 +19,7 @@ module.exports = (client, context) => {
     if (!context.dadosCarregados) return;
         if (!interaction.isButton()) return;
 
-        console.log("BOTÃO:", interaction.customId);
+        console.log("BOTÃO FUNCIONANDO:", interaction.customId);
 
     const nome = interaction.member.displayName;
     const hora = pegarHorario();
