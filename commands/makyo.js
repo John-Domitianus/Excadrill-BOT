@@ -1,9 +1,21 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { embedErro, embedSucesso } = require("../utils/embeds");
+﻿const { embedSucesso, embedErro } = require("../utils/embeds");
+const { atualizarListaCompleta } = require("../utils/lista");
+const { limiteCFK, limiteCFK100 } = require("../config/constants");
+
+function hoje() {
+    const d = new Date();
+    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
+
+function pegarHorario() {
+    const agora = new Date();
+    return `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+}
 
 module.exports = async (message, context) => {
-    const { canalPyaku, salvarDados, filaCFK, filaCFK100, controleDiario } = context;
-    const { limiteCFK, limiteCFK100 } = require("../config/constants");
+    const { canalPyaku, filaCFK, filaCFK100, controleDiario, salvarDados } = context;
+    const nome = message.member.displayName;
+    const hora = pegarHorario();
 
     if (message.content !== "!makyo") return;
 
@@ -12,22 +24,26 @@ module.exports = async (message, context) => {
 
     return message.reply({
         embeds: [
-            new EmbedBuilder()
-                .setColor(0x5865F2)
-                .setTitle("🎯 Painel Makyo")
-                .setDescription("Aqui você pode entrar nas filas do Makyo, ver vagas disponíveis e sair da fila quando quiser.")
-                .addFields(
+            {
+                color: 0x5865F2,
+                title: "🎯 Painel Makyo",
+                description: "Aqui você pode entrar nas filas do Makyo, ver vagas disponíveis e sair da fila quando quiser.",
+                fields: [
                     { name: "Makyo Normal", value: "Entre o andar 1 e 100." },
                     { name: "Makyo Avançado", value: "Acima do andar 100+." },
-                    { name: "Observação", value: "Você só pode entrar uma vez por dia." }
-                )
+                    { name: "Observação", value: "Você só pode entrar uma vez por dia, então tenha atenção em qual vai clicar." }
+                ]
+            }
         ],
         components: [
-            new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId("abrir_makyo").setLabel("Entrar Makyo").setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId("ver_vagas").setLabel("Ver vagas").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("sair_fila").setLabel("Sair").setStyle(ButtonStyle.Danger)
-            )
+            {
+                type: 1,
+                components: [
+                    { type: 2, style: 3, label: "Entrar Makyo", custom_id: "abrir_makyo" },
+                    { type: 2, style: 2, label: "Ver vagas", custom_id: "ver_vagas" },
+                    { type: 2, style: 4, label: "Sair", custom_id: "sair_fila" }
+                ]
+            }
         ]
     });
 };
