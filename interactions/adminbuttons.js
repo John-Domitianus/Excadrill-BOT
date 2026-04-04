@@ -30,7 +30,7 @@ module.exports = async (interaction, context, client) => {
                 await interaction.update({ embeds, components });
             }
         } catch {
-            // fallback caso update/editReply falhe
+            // fallback caso update
             await interaction.reply({ embeds, components, ephemeral: true });
         }
     };
