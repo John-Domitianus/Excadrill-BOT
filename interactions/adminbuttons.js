@@ -9,8 +9,6 @@ const {
 } = require("../config/constants");
 
 module.exports = async (interaction, context, client) => {
-    if (!context.dadosCarregados) return;
-    if (!interaction.isButton()) return;
 
     const nome = interaction.member.displayName;
 
