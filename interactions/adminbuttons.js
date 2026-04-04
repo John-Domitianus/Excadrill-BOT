@@ -1,12 +1,12 @@
 ﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require("discord.js");
-const { embedErro, embedSucesso } = require("../utils/embeds");
-const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
+const { embedErro, embedSucesso } = require("./utils/embeds");
+const { atualizarListaCompleta, atualizarListaGuerra } = require("./utils/lista");
 const {
     limiteCFK,
     limiteCFK100,
     limiteTitular,
     limiteReserva
-} = require("../config/constants");
+} = require("./config/constants");
 
 module.exports = async (interaction, context, client) => {
     if (!context.dadosCarregados) return;
