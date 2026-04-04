@@ -1,4 +1,4 @@
-const { carregarDadosMongo } = require("./services/dataManager");
+const { carregarDadosMongo } = require("../services/dataManager");
 
 module.exports = async (client) => {
     client.on("ready", async () => {
