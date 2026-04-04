@@ -20,7 +20,10 @@ module.exports = async (message, context) => {
             return message.reply("❌ Nickname inválido.");
 
         try {
-            await message.member.setNickname(novoNick);
+            const TAG = "ᖇᏀᑎㅹ";
+            const nickFinal = `${TAG} ${novoNick}`;
+
+            await message.member.setNickname(nickFinal);
             context.esperandoNick = null;
             return message.reply({ embeds: [embedSucesso(`Seu nickname foi alterado para **${novoNick}**.`)] });
         } catch (err) {
