@@ -3,12 +3,13 @@
 module.exports = async (message, context) => {
     const { esperandoNick, controleDiario } = context;
 
-    // INICIAR ALTERAÇÃO DE NICK
+    // Iniciar comando !nick
     if (message.content === "!nick") {
         context.esperandoNick = message.author.id;
         return message.reply("✏️ Escreva o seu nickname desejado.");
     }
 
+    // Alterar nickname
     if (context.esperandoNick === message.author.id) {
         const novoNick = message.content.trim();
 
@@ -22,7 +23,7 @@ module.exports = async (message, context) => {
             await message.member.setNickname(novoNick);
             context.esperandoNick = null;
             return message.reply({ embeds: [embedSucesso(`Seu nickname foi alterado para **${novoNick}**.`)] });
-        } catch {
+        } catch (err) {
             context.esperandoNick = null;
             return message.reply({ embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")] });
         }
