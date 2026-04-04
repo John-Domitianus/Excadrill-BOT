@@ -30,7 +30,6 @@ function pegarHorario() {
 
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
-        console.log("Mensagem recebida:", message.content);
 
         if (message.author.bot) return;
 
