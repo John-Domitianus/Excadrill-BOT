@@ -30,9 +30,15 @@ function pegarHorario() {
 
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
-        if (!dadosCarregados) return;
+        console.log("Mensagem recebida:", message.content);
+
         if (message.author.bot) return;
 
+        if (message.content === "!ping") {
+            message.reply("Pong!");
+        }
+    });
+};
         // contexto compartilhado para todos os comandos
         const context = {
             esperandoNick,
