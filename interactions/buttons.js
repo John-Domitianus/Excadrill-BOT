@@ -1,7 +1,7 @@
 ﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { embedErro, embedSucesso } = require("../utils/embeds");
-const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
-const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
+const { embedErro, embedSucesso } = require("./utils/embeds");
+const { atualizarListaCompleta, atualizarListaGuerra } = require("./utils/lista");
+const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("./config/constants");
 
 function hoje() {
     const d = new Date();
