@@ -1,4 +1,5 @@
 // index.js
+global.rootDir = __dirname;
 const { Client, GatewayIntentBits } = require("discord.js");
 require("dotenv").config();
 
