@@ -1,0 +1,13 @@
+const horariosMakyo = ["10:00", "15:00", "20:00"];
+const limiteCFK = 5;
+const limiteCFK100 = 5;
+const limiteTitular = 30;
+const limiteReserva = 10;
+
+module.exports = {
+    horariosMakyo,
+    limiteCFK,
+    limiteCFK100,
+    limiteTitular,
+    limiteReserva
+};
