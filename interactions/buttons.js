@@ -1,7 +1,7 @@
 ﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { embedErro, embedSucesso } = require("./utils/embeds");
-const { atualizarListaCompleta, atualizarListaGuerra } = require("./utils/lista");
-const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("./config/constants");
+const { embedErro, embedSucesso } = require("../utils/embeds");
+const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
+const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
 
 function hoje() {
     const d = new Date();
@@ -162,7 +162,7 @@ module.exports = async (interaction, context, client) => {
         case "limpar_titular":
         case "limpar_reserva":
             // Aqui você integra a lógica de admin diretamente
-            require("./adminButtons")(interaction, context, client);
+            require("../adminButtons")(interaction, context, client);
             break;
 
         default:
