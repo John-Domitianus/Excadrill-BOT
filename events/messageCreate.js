@@ -37,8 +37,7 @@ module.exports = (client) => {
         if (message.content === "!ping") {
             message.reply("Pong!");
         }
-    });
-};
+    
         // contexto compartilhado para todos os comandos
         const context = {
             esperandoNick,
