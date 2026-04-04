@@ -5,9 +5,10 @@ console.log("DIR:", __dirname);
 console.log("FILES:", fs.readdirSync(__dirname));
 console.log("SERVICES EXISTS:", fs.existsSync(__dirname + "/../services"));
 
-module.exports = async (client) => {
-    client.on("clientReady", async () => {
+module.exports = async (client, context) => {
+    client.on("ready", async () => {  // CORRIGIDO
         console.log(`${client.user.tag} Online!`);
-        await carregarDadosMongo();
+        //await context.carregarDadosMongo();  // use o context já passado
+        //context.dadosCarregados = true;      // marca como pronto
     });
 };
