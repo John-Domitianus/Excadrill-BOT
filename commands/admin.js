@@ -1,4 +1,4 @@
-﻿const { embedErro } = require("../utils/embeds");
+﻿const { embedErro } = require("./utils/embeds");
 const { PermissionsBitField } = require("discord.js");
 
 module.exports = async (message, context) => {
