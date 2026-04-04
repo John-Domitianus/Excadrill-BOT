@@ -1,13 +1,13 @@
 {
   "name": "bot-discord",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Bot Discord",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "keywords": [],
-  "author": "DEV John",
+  "author": "DEV John Domitianus",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
