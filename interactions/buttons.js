@@ -20,6 +20,7 @@ module.exports = (client, context) => {
         if (!interaction.isButton()) return;
 
         console.log("BOTÃO:", interaction.customId);
+        console.log("INTERACTION RECEBIDA");
 
         const nome = interaction.member.displayName;
         const hora = pegarHorario();
@@ -165,8 +166,7 @@ module.exports = (client, context) => {
             case "ver_banidos":
             case "limpar_titular":
             case "limpar_reserva":
-                return require("../adminButtons")(interaction, context, client);
-
+                return await require("../adminButtons")(interaction, context, client);
             default:
                 return erro("Botão não reconhecido.");
         }
