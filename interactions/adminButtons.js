@@ -13,8 +13,13 @@ const { limiteTitular } = require("../config/constants");
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
 
-        if (!context.dadosCarregados) return;
+        
         if (!interaction.isButton()) return;
+        if (!adminButtons.includes(interaction.customId)) return;
+        
+        await interaction.deferUpdate().catch(() => {});
+        if (!context.dadosCarregados) return;
+
 
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
@@ -24,8 +29,6 @@ module.exports = (client, context) => {
         ];
 
         if (!adminButtons.includes(interaction.customId)) return;
-
-        await interaction.deferUpdate();
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return interaction.followUp({
