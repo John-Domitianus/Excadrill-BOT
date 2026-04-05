@@ -61,16 +61,16 @@ module.exports = (client) => {
         const makyoCommand = require("../commands/makyo");
         const guerraCommand = require("../commands/guerra");
         const adminCommand = require("../commands/admin");
-        const canalCommand = require("../commands/canal"); // seu setcanal
-        const filaCommand = require("../commands/fila");   // seu setfila
+        //const canalCommand = require("../commands/canal"); // seu setcanal
+        //const filaCommand = require("../commands/fila");   // seu setfila
 
         // executar os comandos usando o método execute
         if (nickCommand.execute) await nickCommand.execute(message, context);
         if (makyoCommand.execute) await makyoCommand.execute(message, context);
         if (guerraCommand.execute) await guerraCommand.execute(message, context);
         if (adminCommand.execute) await adminCommand.execute(message, context);
-        if (canalCommand.execute) await canalCommand.execute(message, context);
-        if (filaCommand.execute) await filaCommand.execute(message, context);
+        //if (canalCommand.execute) await canalCommand.execute(message, context);
+        //if (filaCommand.execute) await filaCommand.execute(message, context);
 
         // atualizar variáveis externas caso tenham sido alteradas nos comandos
         esperandoNick = context.esperandoNick;
