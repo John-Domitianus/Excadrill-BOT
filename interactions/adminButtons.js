@@ -1,4 +1,5 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
+﻿// interactions/adminButtons.js
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
@@ -25,6 +26,7 @@ module.exports = (client, context) => {
         const adminButtons = [
             "admin_makyo",
             "admin_guerra",
+            "admin_moderacao",
             "voltar_admin",
             "reset_cfk",
             "reset_cfk100",
@@ -33,7 +35,7 @@ module.exports = (client, context) => {
             "ver_banidos",
             "limpar_titular",
             "limpar_reserva",
-            "admin_moderacao",
+            "remover_jogador",
             "banir_jogador",
             "blacklist"
         ];
@@ -72,7 +74,7 @@ module.exports = (client, context) => {
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
                             new ButtonBuilder().setCustomId("limpar_reserva").setLabel("Limpar Reservas").setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder().setCustomId("remover_jogador").setLabel("Remover Jogador").setStyle(ButtonStyle.Danger) // Adicionar o comando
+                            new ButtonBuilder().setCustomId("remover_jogador").setLabel("Remover Jogador").setStyle(ButtonStyle.Danger)
                         ),
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
@@ -80,7 +82,7 @@ module.exports = (client, context) => {
                     ]
                 );
 
-            case "admin_moderacao": // Adicionar os comandos // 
+            case "admin_moderacao":
                 return atualizarMensagem(
                     [new EmbedBuilder().setTitle("🛡️ Moderação")],
                     [
@@ -143,6 +145,11 @@ module.exports = (client, context) => {
                 await context.salvarDados();
                 atualizarListaGuerra(context.client);
                 return adminSucesso("Reservas limpas.");
+
+            case "remover_jogador":
+                context.esperandoRemover = interaction.user.id;
+                await context.salvarDados();
+                return adminSucesso("Marque o jogador para remover da Guerra.");
 
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
