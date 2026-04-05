@@ -7,45 +7,25 @@ module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
         if (!interaction.isButton()) return;
 
-        // Funções auxiliares
         const adminErro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
         const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
 
         const atualizarMensagem = async (embeds, components) => {
-            try {
-                // Atualiza a mesma mensagem com o menu/sub-menu
-                await interaction.update({ embeds, components });
-            } catch {
-                // Caso já tenha sido respondida
-                await interaction.followUp({ embeds, components, ephemeral: true });
-            }
+            // Sempre atualiza a mensagem original com os botões/submenus
+            await interaction.update({ embeds, components });
         };
 
-        // IDs válidos de botões
         const adminButtons = [
-            "admin_makyo",
-            "admin_guerra",
-            "admin_moderacao",
-            "voltar_admin",
-            "reset_cfk",
-            "reset_cfk100",
-            "banir_membro",
-            "desbanir_membro",
-            "ver_banidos",
-            "limpar_titular",
-            "limpar_reserva",
-            "remover_jogador",
-            "banir_jogador",
-            "blacklist"
+            "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
+            "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
+            "limpar_titular", "limpar_reserva", "remover_jogador", "banir_jogador", "blacklist"
         ];
 
         if (!adminButtons.includes(interaction.customId)) return;
-
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return adminErro("Sem permissão.");
-        }
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return adminErro("Sem permissão.");
 
         switch (interaction.customId) {
+
             // ================= MENU PRINCIPAL =================
             case "admin_makyo":
                 return atualizarMensagem(
@@ -132,7 +112,7 @@ module.exports = (client, context) => {
 
             case "ver_banidos":
                 const lista = context.banidosMakyo.length ? context.banidosMakyo.join("\n") : "Nenhum jogador.";
-                return interaction.reply({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
+                return interaction.followUp({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
 
             // ================= GUERRA =================
             case "limpar_titular":
@@ -150,38 +130,23 @@ module.exports = (client, context) => {
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
 
-                await interaction.followUp({ content: "Qual jogador deseja remover da Guerra? (marque com @)", ephemeral: true });
-
+                const jogadorMsg = await interaction.followUp({ content: "Qual jogador deseja remover da Guerra? (marque com @)", ephemeral: true });
                 const filterRemover = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
-
                 const collectorRemover = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
 
                 collectorRemover.on("collect", async (msg) => {
                     const jogador = msg.mentions.members.first();
                     if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
 
-                    await interaction.followUp({ content: `Qual o motivo para remover ${jogador}?`, ephemeral: true });
-
+                    const motivoMsg = await interaction.channel.send(`Qual o motivo para remover ${jogador}?`);
                     const motivoCollector = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
 
-                    motivoCollector.on("collect", async (motivoMsg) => {
-                        const motivo = motivoMsg.content;
-
+                    motivoCollector.on("collect", async (motivo) => {
                         if (!context.removidosGuerra) context.removidosGuerra = [];
-                        context.removidosGuerra.push({ id: jogador.id, nome: jogador.user.username, motivo });
-
+                        context.removidosGuerra.push({ id: jogador.id, nome: jogador.user.username, motivo: motivo.content });
                         await context.salvarDados();
-
                         await interaction.followUp({ content: `Jogador ${jogador} removido da Guerra! Motivo registrado.`, ephemeral: true });
                     });
-
-                    motivoCollector.on("end", collected => {
-                        if (collected.size === 0) interaction.followUp({ content: "Tempo esgotado para enviar o motivo.", ephemeral: true });
-                    });
-                });
-
-                collectorRemover.on("end", collected => {
-                    if (collected.size === 0) interaction.followUp({ content: "Tempo esgotado para enviar o jogador.", ephemeral: true });
                 });
                 break;
 
@@ -189,38 +154,23 @@ module.exports = (client, context) => {
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
 
-                await interaction.followUp({ content: "Qual o jogador deseja banir? (marque com @)", ephemeral: true });
-
+                const banMsg = await interaction.followUp({ content: "Qual jogador deseja banir? (marque com @)", ephemeral: true });
                 const filterBanir = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
-
                 const collectorBanir = interaction.channel.createMessageCollector({ filter: filterBanir, max: 1, time: 60000 });
 
                 collectorBanir.on("collect", async (msg) => {
                     const jogador = msg.mentions.members.first();
                     if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
 
-                    await interaction.followUp({ content: `Qual infração ${jogador} cometeu?`, ephemeral: true });
-
+                    const motivoMsg = await interaction.channel.send(`Qual infração ${jogador} cometeu?`);
                     const motivoCollector = interaction.channel.createMessageCollector({ filter: filterBanir, max: 1, time: 60000 });
 
-                    motivoCollector.on("collect", async (motivoMsg) => {
-                        const motivo = motivoMsg.content;
-
+                    motivoCollector.on("collect", async (motivo) => {
                         if (!context.banidosMod) context.banidosMod = [];
-                        context.banidosMod.push({ id: jogador.id, nome: jogador.user.username, motivo });
-
+                        context.banidosMod.push({ id: jogador.id, nome: jogador.user.username, motivo: motivo.content });
                         await context.salvarDados();
-
                         await interaction.followUp({ content: `Jogador ${jogador} banido da escola, infração registrada!`, ephemeral: true });
                     });
-
-                    motivoCollector.on("end", collected => {
-                        if (collected.size === 0) interaction.followUp({ content: "Tempo esgotado para enviar o motivo.", ephemeral: true });
-                    });
-                });
-
-                collectorBanir.on("end", collected => {
-                    if (collected.size === 0) interaction.followUp({ content: "Tempo esgotado para enviar o jogador.", ephemeral: true });
                 });
                 break;
 
