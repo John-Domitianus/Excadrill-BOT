@@ -1,4 +1,5 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
+﻿// adminButtons.js
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
@@ -7,26 +8,29 @@ module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
         if (!interaction.isButton()) return;
 
-        const adminErro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
-        const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
-
-        const atualizarMensagem = async (embeds, components) => {
-            // Sempre atualiza a mensagem original com os botões/submenus
-            await interaction.update({ embeds, components });
-        };
-
+        // Lista apenas dos botões de admin
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
             "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
             "limpar_titular", "limpar_reserva", "remover_jogador", "banir_jogador", "blacklist"
         ];
-
         if (!adminButtons.includes(interaction.customId)) return;
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return adminErro("Sem permissão.");
 
+        // Verificação de permissão
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return interaction.reply({ embeds: [embedErro("Sem permissão.")], ephemeral: true });
+        }
+
+        // Funções auxiliares
+        const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
+        const atualizarMensagem = async (embeds, components) => {
+            await interaction.update({ embeds, components });
+        };
+
+        // ================= SWITCH PRINCIPAL =================
         switch (interaction.customId) {
 
-            // ================= MENU PRINCIPAL =================
+            // MENU PRINCIPAL
             case "admin_makyo":
                 return atualizarMensagem(
                     [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
@@ -129,54 +133,15 @@ module.exports = (client, context) => {
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-
-                const jogadorMsg = await interaction.followUp({ content: "Qual jogador deseja remover da Guerra? (marque com @)", ephemeral: true });
-                const filterRemover = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
-                const collectorRemover = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
-
-                collectorRemover.on("collect", async (msg) => {
-                    const jogador = msg.mentions.members.first();
-                    if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
-
-                    const motivoMsg = await interaction.channel.send(`Qual o motivo para remover ${jogador}?`);
-                    const motivoCollector = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
-
-                    motivoCollector.on("collect", async (motivo) => {
-                        if (!context.removidosGuerra) context.removidosGuerra = [];
-                        context.removidosGuerra.push({ id: jogador.id, nome: jogador.user.username, motivo: motivo.content });
-                        await context.salvarDados();
-                        await interaction.followUp({ content: `Jogador ${jogador} removido da Guerra! Motivo registrado.`, ephemeral: true });
-                    });
-                });
-                break;
+                return adminSucesso("Marque o jogador para remover da Guerra."); // coleta depois via commands
 
             // ================= MODERAÇÃO =================
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
-
-                const banMsg = await interaction.followUp({ content: "Qual jogador deseja banir? (marque com @)", ephemeral: true });
-                const filterBanir = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
-                const collectorBanir = interaction.channel.createMessageCollector({ filter: filterBanir, max: 1, time: 60000 });
-
-                collectorBanir.on("collect", async (msg) => {
-                    const jogador = msg.mentions.members.first();
-                    if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
-
-                    const motivoMsg = await interaction.channel.send(`Qual infração ${jogador} cometeu?`);
-                    const motivoCollector = interaction.channel.createMessageCollector({ filter: filterBanir, max: 1, time: 60000 });
-
-                    motivoCollector.on("collect", async (motivo) => {
-                        if (!context.banidosMod) context.banidosMod = [];
-                        context.banidosMod.push({ id: jogador.id, nome: jogador.user.username, motivo: motivo.content });
-                        await context.salvarDados();
-                        await interaction.followUp({ content: `Jogador ${jogador} banido da escola, infração registrada!`, ephemeral: true });
-                    });
-                });
-                break;
+                return adminSucesso("Marque o jogador para banir."); // coleta depois via commands
 
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
-                await context.salvarDados();
                 return adminSucesso("Marque o jogador para colocar na Blacklist.");
         }
     });
