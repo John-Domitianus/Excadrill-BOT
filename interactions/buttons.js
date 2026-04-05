@@ -2,7 +2,7 @@
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
-const adminButtons = require("./admin");
+
 
 function hoje() {
     const d = new Date();
@@ -16,24 +16,20 @@ function pegarHorario() {
 
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
-
         if (!context.dadosCarregados) return;
         if (!interaction.isButton()) return;
 
         await interaction.deferUpdate(); // evita erro de múltiplas respostas
+
         const nome = interaction.member.displayName;
         const hora = pegarHorario();
 
-        const erro = (msg) =>
-            interaction.followUp({ embeds: [embedErro(msg)], ephemeral: true });
-
-        const sucesso = (msg) =>
-            interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
+        const erro = (msg) => interaction.followUp({ embeds: [embedErro(msg)], ephemeral: true });
+        const sucesso = (msg) => interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
 
         if (context.banidosMakyo.includes(nome)) return erro("Você está banido dos Makyo's.");
 
         switch (interaction.customId) {
-
             // ================= MAKYO =================
             case "abrir_makyo":
                 return interaction.editReply({
@@ -153,22 +149,6 @@ module.exports = (client, context) => {
                     ],
                     ephemeral: true
                 });
-
-            // ================= ADMIN =================
-            case "admin_makyo":
-            case "admin_guerra":
-            case "voltar_admin":
-            case "reset_cfk":
-            case "reset_cfk100":
-            case "banir_membro":
-            case "desbanir_membro":
-            case "ver_banidos":
-            case "limpar_titular":
-            case "limpar_reserva":
-                return await require("./admin")(interaction, context, client);
-
-            default:
-                return erro("Botão não reconhecido.");
-        }
+            }
     });
 };
