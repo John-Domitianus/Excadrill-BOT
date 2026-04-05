@@ -10,15 +10,14 @@ module.exports = (client, context) => {
         // Funções auxiliares
         const adminErro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
         const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
+
         const atualizarMensagem = async (embeds, components) => {
             try {
-                if (interaction.deferred || interaction.replied) {
-                    await interaction.editReply({ embeds, components });
-                } else {
-                    await interaction.update({ embeds, components });
-                }
+                // Atualiza a mesma mensagem com o menu/sub-menu
+                await interaction.update({ embeds, components });
             } catch {
-                await interaction.reply({ embeds, components, ephemeral: true });
+                // Caso já tenha sido respondida
+                await interaction.followUp({ embeds, components, ephemeral: true });
             }
         };
 
@@ -42,12 +41,12 @@ module.exports = (client, context) => {
 
         if (!adminButtons.includes(interaction.customId)) return;
 
-        // Verifica permissão de administrador
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return adminErro("Sem permissão.");
         }
 
         switch (interaction.customId) {
+            // ================= MENU PRINCIPAL =================
             case "admin_makyo":
                 return atualizarMensagem(
                     [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
@@ -108,6 +107,7 @@ module.exports = (client, context) => {
                     ]
                 );
 
+            // ================= MAKYO =================
             case "reset_cfk":
                 context.filaCFK.length = 0;
                 await context.salvarDados();
@@ -134,6 +134,7 @@ module.exports = (client, context) => {
                 const lista = context.banidosMakyo.length ? context.banidosMakyo.join("\n") : "Nenhum jogador.";
                 return interaction.reply({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
 
+            // ================= GUERRA =================
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
@@ -146,23 +147,20 @@ module.exports = (client, context) => {
                 atualizarListaGuerra(context.client);
                 return adminSucesso("Reservas limpas.");
 
-            // ================= REMOVER JOGADOR COM MOTIVO =================
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
 
-                await interaction.reply({ content: "Qual jogador você deseja remover da Guerra? (marque com @)", ephemeral: true });
+                await interaction.followUp({ content: "Qual jogador deseja remover da Guerra? (marque com @)", ephemeral: true });
 
-                const filterRemover = m => m.author.id === interaction.user.id;
+                const filterRemover = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
 
                 const collectorRemover = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
 
                 collectorRemover.on("collect", async (msg) => {
                     const jogador = msg.mentions.members.first();
-                    if (!jogador) {
-                        return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
-                    }
+                    if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
 
-                    await interaction.followUp({ content: `Qual o motivo para remover ${jogador} da Guerra?`, ephemeral: true });
+                    await interaction.followUp({ content: `Qual o motivo para remover ${jogador}?`, ephemeral: true });
 
                     const motivoCollector = interaction.channel.createMessageCollector({ filter: filterRemover, max: 1, time: 60000 });
 
@@ -187,21 +185,19 @@ module.exports = (client, context) => {
                 });
                 break;
 
-            // ================= BANIR JOGADOR COM MOTIVO =================
+            // ================= MODERAÇÃO =================
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
 
-                await interaction.reply({ content: "Qual o nome do jogador que deseja banir? (marque o jogador com @)", ephemeral: true });
+                await interaction.followUp({ content: "Qual o jogador deseja banir? (marque com @)", ephemeral: true });
 
-                const filterBanir = m => m.author.id === interaction.user.id;
+                const filterBanir = m => m.author.id === interaction.user.id && m.channelId === interaction.channelId;
 
                 const collectorBanir = interaction.channel.createMessageCollector({ filter: filterBanir, max: 1, time: 60000 });
 
                 collectorBanir.on("collect", async (msg) => {
                     const jogador = msg.mentions.members.first();
-                    if (!jogador) {
-                        return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
-                    }
+                    if (!jogador) return interaction.followUp({ content: "Você precisa marcar o jogador com @.", ephemeral: true });
 
                     await interaction.followUp({ content: `Qual infração ${jogador} cometeu?`, ephemeral: true });
 
@@ -215,7 +211,7 @@ module.exports = (client, context) => {
 
                         await context.salvarDados();
 
-                        await interaction.followUp({ content: `Jogador ${jogador} banido da escola, infração registrada no banco de dados!`, ephemeral: true });
+                        await interaction.followUp({ content: `Jogador ${jogador} banido da escola, infração registrada!`, ephemeral: true });
                     });
 
                     motivoCollector.on("end", collected => {
