@@ -1,5 +1,4 @@
-﻿// interactions/adminButtons.js
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
+﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
@@ -8,7 +7,6 @@ module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
         if (!interaction.isButton()) return;
 
-        // Funções auxiliares
         const adminErro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
         const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
         const atualizarMensagem = async (embeds, components) => {
@@ -42,7 +40,6 @@ module.exports = (client, context) => {
 
         if (!adminButtons.includes(interaction.customId)) return;
 
-        // Verifica permissão de administrador
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return adminErro("Sem permissão.");
         }
