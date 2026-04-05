@@ -1,4 +1,4 @@
-﻿// adminButtons.js
+﻿// admin.js
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
@@ -8,7 +8,7 @@ module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
         if (!interaction.isButton()) return;
 
-        // Lista apenas dos botões de admin
+        // Lista de IDs válidos do painel admin
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
             "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
@@ -16,18 +16,16 @@ module.exports = (client, context) => {
         ];
         if (!adminButtons.includes(interaction.customId)) return;
 
-        // Verificação de permissão
+        // Checar se é administrador
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return interaction.reply({ embeds: [embedErro("Sem permissão.")], ephemeral: true });
         }
 
         // Funções auxiliares
         const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
-        const atualizarMensagem = async (embeds, components) => {
-            await interaction.update({ embeds, components });
-        };
+        const atualizarMensagem = async (embeds, components) => await interaction.update({ embeds, components });
 
-        // ================= SWITCH PRINCIPAL =================
+        // ================= SWITCH DE BOTÕES =================
         switch (interaction.customId) {
 
             // MENU PRINCIPAL
@@ -133,12 +131,12 @@ module.exports = (client, context) => {
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-                return adminSucesso("Marque o jogador para remover da Guerra."); // coleta depois via commands
+                return adminSucesso("Marque o jogador para remover da Guerra.");
 
             // ================= MODERAÇÃO =================
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
-                return adminSucesso("Marque o jogador para banir."); // coleta depois via commands
+                return adminSucesso("Marque o jogador para banir.");
 
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
