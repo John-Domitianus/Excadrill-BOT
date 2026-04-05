@@ -12,7 +12,6 @@ const {
     banidosMakyo
 } = require("../services/dataManager");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
-const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
 
 let esperandoNick = null;
 let esperandoBan = null;
@@ -30,13 +29,13 @@ function pegarHorario() {
 
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
-
         if (message.author.bot) return;
 
+        // comando de teste rápido
         if (message.content === "!ping") {
-            message.reply("Pong!");
+            return message.reply("Pong!");
         }
-    
+
         // contexto compartilhado para todos os comandos
         const context = {
             esperandoNick,
@@ -56,21 +55,26 @@ module.exports = (client) => {
             atualizarListaGuerra
         };
 
-        // importar os comandos
-        const nickCommand = require("../commands/nick");
-        const makyoCommand = require("../commands/makyo");
-        const guerraCommand = require("../commands/guerra");
-        const adminCommand = require("../commands/admin");
-        //const canalCommand = require("../commands/canal"); // seu setcanal
-        //const filaCommand = require("../commands/fila");   // seu setfila
+        // lista de comandos
+        const comandos = [
+            "../commands/nick",
+            "../commands/makyo",
+            "../commands/guerra",
+            "../commands/admin"
+        ];
 
-        // executar os comandos usando o método execute
-        if (nickCommand.execute) await nickCommand.execute(message, context);
-        if (makyoCommand.execute) await makyoCommand.execute(message, context);
-        if (guerraCommand.execute) await guerraCommand.execute(message, context);
-        if (adminCommand.execute) await adminCommand.execute(message, context);
-        //if (canalCommand.execute) await canalCommand.execute(message, context);
-        //if (filaCommand.execute) await filaCommand.execute(message, context);
+        for (const cmdPath of comandos) {
+            try {
+                const comando = require(cmdPath);
+                if (comando && typeof comando === "function") {
+                    await comando(message, context);
+                } else if (comando && comando.execute) {
+                    await comando.execute(message, context);
+                }
+            } catch (err) {
+                console.warn(`⚠️ Comando não encontrado ou com erro: ${cmdPath}`);
+            }
+        }
 
         // atualizar variáveis externas caso tenham sido alteradas nos comandos
         esperandoNick = context.esperandoNick;
