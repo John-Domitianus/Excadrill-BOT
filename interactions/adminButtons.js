@@ -1,4 +1,4 @@
-﻿// admin.js
+﻿// adminButtons.js
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
@@ -6,29 +6,28 @@ const { limiteTitular } = require("../config/constants");
 
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
+        if (!context.dadosCarregados) return; // só processa após dados carregados
         if (!interaction.isButton()) return;
 
-        // Lista de IDs válidos do painel admin
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
             "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
             "limpar_titular", "limpar_reserva", "remover_jogador", "banir_jogador", "blacklist"
         ];
+
         if (!adminButtons.includes(interaction.customId)) return;
 
-        // Checar se é administrador
+        // Permissão apenas para administradores
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ embeds: [embedErro("Sem permissão.")], ephemeral: true });
+            return interaction.reply({ embeds: [embedErro("❌ Sem permissão.")], ephemeral: true });
         }
 
-        // Funções auxiliares
         const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
         const atualizarMensagem = async (embeds, components) => await interaction.update({ embeds, components });
 
-        // ================= SWITCH DE BOTÕES =================
         switch (interaction.customId) {
 
-            // MENU PRINCIPAL
+            // ===== MENU PRINCIPAL =====
             case "admin_makyo":
                 return atualizarMensagem(
                     [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
@@ -89,7 +88,7 @@ module.exports = (client, context) => {
                     ]
                 );
 
-            // ================= MAKYO =================
+            // ===== MAKYO =====
             case "reset_cfk":
                 context.filaCFK.length = 0;
                 await context.salvarDados();
@@ -116,7 +115,7 @@ module.exports = (client, context) => {
                 const lista = context.banidosMakyo.length ? context.banidosMakyo.join("\n") : "Nenhum jogador.";
                 return interaction.followUp({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
 
-            // ================= GUERRA =================
+            // ===== GUERRA =====
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
@@ -133,7 +132,7 @@ module.exports = (client, context) => {
                 context.esperandoRemover = interaction.user.id;
                 return adminSucesso("Marque o jogador para remover da Guerra.");
 
-            // ================= MODERAÇÃO =================
+            // ===== MODERAÇÃO =====
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
                 return adminSucesso("Marque o jogador para banir.");
