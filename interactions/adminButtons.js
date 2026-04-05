@@ -1,129 +1,158 @@
-﻿// interactions/adminButtons.js
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField, EmbedBuilder } = require("discord.js");
+﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
-const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
+const { limiteTitular } = require("../config/constants");
 
-module.exports = async (interaction, context, client) => {
+module.exports = (client, context) => {
+    client.on("interactionCreate", async (interaction) => {
+        if (!interaction.isButton()) return;
 
-    const nome = interaction.member.displayName;
-
-    const erro = (msg) =>
-        interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
-
-    const sucesso = (msg) =>
-        interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
-
-    // Verifica banimento
-    if (context.banidosMakyo.includes(nome)) return erro("Você está banido.");
-
-    // Verifica permissões de admin
-    const hasAdmin = interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
-    if (!hasAdmin) return erro("Sem permissão.");
-
-    // Função auxiliar para atualizar embeds e botões com segurança __
-    const atualizarMensagem = async (embeds, components) => {
-        try {
-            if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ embeds, components });
-            } else {
-                await interaction.update({ embeds, components });
+        // Funções auxiliares
+        const adminErro = (msg) => interaction.reply({ embeds: [embedErro(msg)], ephemeral: true });
+        const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
+        const atualizarMensagem = async (embeds, components) => {
+            try {
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.editReply({ embeds, components });
+                } else {
+                    await interaction.update({ embeds, components });
+                }
+            } catch {
+                await interaction.reply({ embeds, components, ephemeral: true });
             }
-        } catch {
-            // fallback caso update
-            await interaction.reply({ embeds, components, ephemeral: true });
+        };
+
+        const adminButtons = [
+            "admin_makyo",
+            "admin_guerra",
+            "voltar_admin",
+            "reset_cfk",
+            "reset_cfk100",
+            "banir_membro",
+            "desbanir_membro",
+            "ver_banidos",
+            "limpar_titular",
+            "limpar_reserva",
+            "admin_moderacao",
+            "banir_jogador",
+            "blacklist"
+        ];
+
+        if (!adminButtons.includes(interaction.customId)) return;
+
+        // Verifica permissão de administrador
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return adminErro("Sem permissão.");
         }
-    };
 
-    switch (interaction.customId) {
+        switch (interaction.customId) {
+            case "admin_makyo":
+                return atualizarMensagem(
+                    [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
+                    [
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("reset_cfk").setLabel("Reset Makyo").setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Reset Avançado").setStyle(ButtonStyle.Danger)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("banir_membro").setLabel("Banir").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId("desbanir_membro").setLabel("Desbanir").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId("ver_banidos").setLabel("Ver Banidos").setStyle(ButtonStyle.Primary)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
+                        )
+                    ]
+                );
 
-        case "admin_makyo":
-            return atualizarMensagem(
-                [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
-                [
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("reset_cfk").setLabel("Reset Makyo").setStyle(ButtonStyle.Danger),
-                        new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Reset Avançado").setStyle(ButtonStyle.Danger)
-                    ),
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("banir_membro").setLabel("Banir").setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId("desbanir_membro").setLabel("Desbanir").setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId("ver_banidos").setLabel("Ver Banidos").setStyle(ButtonStyle.Primary)
-                    ),
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
-                    )
-                ]
-            );
+            case "admin_guerra":
+                return atualizarMensagem(
+                    [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
+                    [
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId("limpar_reserva").setLabel("Limpar Reservas").setStyle(ButtonStyle.Danger)
+                            new ButtonBuilder().setCustomId("remover_jogador").setLabel("Remover Jogador").setStyle(ButtonStyle.Danger) // Adicionar o comando
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
+                        )
+                    ]
+                );
 
-        case "admin_guerra":
-            return atualizarMensagem(
-                [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
-                [
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
-                        new ButtonBuilder().setCustomId("limpar_reserva").setLabel("Limpar Reservas").setStyle(ButtonStyle.Danger)
-                    ),
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
-                    )
-                ]
-            );
+            case "admin_moderacao": // Adicionar os comandos // 
+                return atualizarMensagem(
+                    [new EmbedBuilder().setTitle("🛡️ Moderação")],
+                    [
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("banir_jogador").setLabel("Banir jogador").setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId("blacklist").setLabel("Blacklist").setStyle(ButtonStyle.Secondary)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
+                        )
+                    ]
+                );
 
-        case "voltar_admin":
-            return atualizarMensagem(
-                [new EmbedBuilder().setTitle("🛠️ Admin")],
-                [
-                    new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
-                        new ButtonBuilder().setCustomId("admin_guerra").setLabel("Guerra").setStyle(ButtonStyle.Danger)
-                    )
-                ]
-            );
+            case "voltar_admin":
+                return atualizarMensagem(
+                    [new EmbedBuilder().setTitle("🛠️ Admin")],
+                    [
+                        new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId("admin_guerra").setLabel("Guerra").setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId("admin_moderacao").setLabel("Moderação").setStyle(ButtonStyle.Secondary)
+                        )
+                    ]
+                );
 
-        // =================== MAKYO ===================
-        case "reset_cfk":
-            context.filaCFK.length = 0;
-            await context.salvarDados();
-            atualizarListaCompleta(client);
-            return sucesso("Makyo resetado.");
+            case "reset_cfk":
+                context.filaCFK.length = 0;
+                await context.salvarDados();
+                atualizarListaCompleta(context.client);
+                return adminSucesso("Makyo resetado.");
 
-        case "reset_cfk100":
-            context.filaCFK100.length = 0;
-            await context.salvarDados();
-            atualizarListaCompleta(client);
-            return sucesso("Makyo Avançado resetado.");
+            case "reset_cfk100":
+                context.filaCFK100.length = 0;
+                await context.salvarDados();
+                atualizarListaCompleta(context.client);
+                return adminSucesso("Makyo Avançado resetado.");
 
-        case "banir_membro":
-            context.esperandoBan = interaction.user.id;
-            await context.salvarDados();
-            return sucesso("Marque o jogador para banir.");
+            case "banir_membro":
+                context.esperandoBan = interaction.user.id;
+                await context.salvarDados();
+                return adminSucesso("Marque o jogador para banir.");
 
-        case "desbanir_membro":
-            context.esperandoUnban = interaction.user.id;
-            await context.salvarDados();
-            return sucesso("Marque o jogador para desbanir.");
+            case "desbanir_membro":
+                context.esperandoUnban = interaction.user.id;
+                await context.salvarDados();
+                return adminSucesso("Marque o jogador para desbanir.");
 
-        case "ver_banidos":
-            const lista = context.banidosMakyo.length
-                ? context.banidosMakyo.join("\n")
-                : "Nenhum jogador.";
-            return interaction.reply({
-                embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)],
-                ephemeral: true
-            });
+            case "ver_banidos":
+                const lista = context.banidosMakyo.length ? context.banidosMakyo.join("\n") : "Nenhum jogador.";
+                return interaction.reply({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
 
-        // =================== GUERRA ===================
-        case "limpar_titular":
-            context.filaGuerra.splice(0, limiteTitular);
-            await context.salvarDados();
-            atualizarListaGuerra(client);
-            return sucesso("Titulares limpos.");
+            case "limpar_titular":
+                context.filaGuerra.splice(0, limiteTitular);
+                await context.salvarDados();
+                atualizarListaGuerra(context.client);
+                return adminSucesso("Titulares limpos.");
 
-        case "limpar_reserva":
-            context.filaGuerra.splice(limiteTitular);
-            await context.salvarDados();
-            atualizarListaGuerra(client);
-            return sucesso("Reservas limpas.");
-    }
+            case "limpar_reserva":
+                context.filaGuerra.splice(limiteTitular);
+                await context.salvarDados();
+                atualizarListaGuerra(context.client);
+                return adminSucesso("Reservas limpas.");
+
+            case "banir_jogador":
+                context.esperandoBan = interaction.user.id;
+                await context.salvarDados();
+                return adminSucesso("Marque o jogador para banir (moderação).");
+
+            case "blacklist":
+                context.esperandoBlacklist = interaction.user.id;
+                await context.salvarDados();
+                return adminSucesso("Marque o jogador para colocar na Blacklist.");
+        }
+    });
 };
