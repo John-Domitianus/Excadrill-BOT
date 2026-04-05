@@ -1,42 +1,49 @@
-﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
+﻿const {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    EmbedBuilder,
+    PermissionsBitField
+} = require("discord.js");
+
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
 
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
+
         if (!context.dadosCarregados) return;
         if (!interaction.isButton()) return;
 
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
             "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
-            "limpar_titular", "limpar_reserva", "remover_jogador", "banir_jogador", "blacklist"
+            "limpar_titular", "limpar_reserva", "remover_jogador",
+            "banir_jogador", "blacklist"
         ];
 
         if (!adminButtons.includes(interaction.customId)) return;
 
-        // ✅ responde interação corretamente
         await interaction.deferUpdate();
 
-        // 🔒 permissão
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.followUp({ embeds: [embedErro("❌ Sem permissão.")], ephemeral: true });
+            return interaction.followUp({
+                embeds: [embedErro("❌ Sem permissão.")],
+                ephemeral: true
+            });
         }
 
         const sucesso = (msg) =>
             interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
 
-        const atualizar = (embeds, components) =>
-            interaction.editReply({ embeds, components });
-
         switch (interaction.customId) {
 
-            // ===== MENU =====
+            // ================= MENU =================
             case "admin_makyo":
-                return atualizar(
-                    [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
-                    [
+                return interaction.editReply({
+                    embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
+                    components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("reset_cfk").setLabel("Reset Makyo").setStyle(ButtonStyle.Danger),
                             new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Reset Avançado").setStyle(ButtonStyle.Danger)
@@ -50,12 +57,12 @@ module.exports = (client, context) => {
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                         )
                     ]
-                );
+                });
 
             case "admin_guerra":
-                return atualizar(
-                    [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
-                    [
+                return interaction.editReply({
+                    embeds: [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
+                    components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
                             new ButtonBuilder().setCustomId("limpar_reserva").setLabel("Limpar Reservas").setStyle(ButtonStyle.Danger),
@@ -65,12 +72,12 @@ module.exports = (client, context) => {
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                         )
                     ]
-                );
+                });
 
             case "admin_moderacao":
-                return atualizar(
-                    [new EmbedBuilder().setTitle("🛡️ Moderação")],
-                    [
+                return interaction.editReply({
+                    embeds: [new EmbedBuilder().setTitle("🛡️ Moderação")],
+                    components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("banir_jogador").setLabel("Banir jogador").setStyle(ButtonStyle.Danger),
                             new ButtonBuilder().setCustomId("blacklist").setLabel("Blacklist").setStyle(ButtonStyle.Secondary)
@@ -79,32 +86,42 @@ module.exports = (client, context) => {
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                         )
                     ]
-                );
+                });
 
             case "voltar_admin":
-                return atualizar(
-                    [new EmbedBuilder().setTitle("🛠️ Painel Admin")],
-                    [
+                return interaction.editReply({
+                    embeds: [new EmbedBuilder().setTitle("🛠️ Painel Admin")],
+                    components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
                             new ButtonBuilder().setCustomId("admin_guerra").setLabel("Guerra").setStyle(ButtonStyle.Danger),
                             new ButtonBuilder().setCustomId("admin_moderacao").setLabel("Moderação").setStyle(ButtonStyle.Secondary)
                         )
                     ]
-                );
+                });
 
-            // ===== MAKYO =====
+            // ================= MAKYO =================
             case "reset_cfk":
                 context.filaCFK.length = 0;
                 await context.salvarDados();
-                atualizarListaCompleta(context.client);
+                atualizarListaCompleta(client);
                 return sucesso("Makyo resetado.");
 
             case "reset_cfk100":
                 context.filaCFK100.length = 0;
                 await context.salvarDados();
-                atualizarListaCompleta(context.client);
+                atualizarListaCompleta(client);
                 return sucesso("Makyo Avançado resetado.");
+
+            case "banir_membro":
+                context.esperandoBan = interaction.user.id;
+                await context.salvarDados();
+                return sucesso("Marque o jogador para banir.");
+
+            case "desbanir_membro":
+                context.esperandoUnban = interaction.user.id;
+                await context.salvarDados();
+                return sucesso("Marque o jogador para desbanir.");
 
             case "ver_banidos":
                 const lista = context.banidosMakyo.length
@@ -112,22 +129,40 @@ module.exports = (client, context) => {
                     : "Nenhum jogador.";
 
                 return interaction.followUp({
-                    embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xED4245)
+                            .setTitle("🚫 Banidos")
+                            .setDescription(lista)
+                    ],
                     ephemeral: true
                 });
 
-            // ===== GUERRA =====
+            // ================= GUERRA =================
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
-                atualizarListaGuerra(context.client);
+                atualizarListaGuerra(client);
                 return sucesso("Titulares limpos.");
 
             case "limpar_reserva":
                 context.filaGuerra.splice(limiteTitular);
                 await context.salvarDados();
-                atualizarListaGuerra(context.client);
+                atualizarListaGuerra(client);
                 return sucesso("Reservas limpas.");
+
+            case "remover_jogador":
+                context.esperandoRemover = interaction.user.id;
+                return sucesso("Marque o jogador para remover da Guerra.");
+
+            // ================= MODERAÇÃO =================
+            case "banir_jogador":
+                context.esperandoBan = interaction.user.id;
+                return sucesso("Marque o jogador para banir.");
+
+            case "blacklist":
+                context.esperandoBlacklist = interaction.user.id;
+                return sucesso("Marque o jogador para colocar na Blacklist.");
         }
     });
 };
