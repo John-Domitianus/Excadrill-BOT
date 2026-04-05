@@ -26,8 +26,9 @@ module.exports = async (message, context) => {
                     { type: 2, style: 1, label: "Makyo", custom_id: "admin_makyo" },
                     { type: 2, style: 4, label: "Guerra", custom_id: "admin_guerra" },
                     { type: 2, style: 2, label: "Moderação", custom_id: "admin_moderacao" } // Novo botão adicionado
-                ]
+               ]
             }
-        ]
-    });
+        ],
+        fetchReply: true
+     });
 };
