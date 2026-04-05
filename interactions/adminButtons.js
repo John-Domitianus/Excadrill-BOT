@@ -1,12 +1,11 @@
-﻿// adminButtons.js
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
+﻿const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
 
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
-        if (!context.dadosCarregados) return; // só processa após dados carregados
+        if (!context.dadosCarregados) return;
         if (!interaction.isButton()) return;
 
         const adminButtons = [
@@ -16,21 +15,26 @@ module.exports = (client, context) => {
         ];
 
         if (!adminButtons.includes(interaction.customId)) return;
+
+        // ✅ responde interação corretamente
         await interaction.deferUpdate();
 
-        // Permissão apenas para administradores
+        // 🔒 permissão
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.reply({ embeds: [embedErro("❌ Sem permissão.")], ephemeral: true });
+            return interaction.followUp({ embeds: [embedErro("❌ Sem permissão.")], ephemeral: true });
         }
 
-        const adminSucesso = (msg) => interaction.reply({ embeds: [embedSucesso(msg)], ephemeral: true });
-        const atualizarMensagem = async (embeds, components) => await interaction.update({ embeds, components });
+        const sucesso = (msg) =>
+            interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
+
+        const atualizar = (embeds, components) =>
+            interaction.editReply({ embeds, components });
 
         switch (interaction.customId) {
 
-            // ===== MENU PRINCIPAL =====
+            // ===== MENU =====
             case "admin_makyo":
-                return atualizarMensagem(
+                return atualizar(
                     [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
                     [
                         new ActionRowBuilder().addComponents(
@@ -49,7 +53,7 @@ module.exports = (client, context) => {
                 );
 
             case "admin_guerra":
-                return atualizarMensagem(
+                return atualizar(
                     [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
                     [
                         new ActionRowBuilder().addComponents(
@@ -64,7 +68,7 @@ module.exports = (client, context) => {
                 );
 
             case "admin_moderacao":
-                return atualizarMensagem(
+                return atualizar(
                     [new EmbedBuilder().setTitle("🛡️ Moderação")],
                     [
                         new ActionRowBuilder().addComponents(
@@ -78,8 +82,8 @@ module.exports = (client, context) => {
                 );
 
             case "voltar_admin":
-                return atualizarMensagem(
-                    [new EmbedBuilder().setTitle("🛠️ Admin")],
+                return atualizar(
+                    [new EmbedBuilder().setTitle("🛠️ Painel Admin")],
                     [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),
@@ -94,53 +98,36 @@ module.exports = (client, context) => {
                 context.filaCFK.length = 0;
                 await context.salvarDados();
                 atualizarListaCompleta(context.client);
-                return adminSucesso("Makyo resetado.");
+                return sucesso("Makyo resetado.");
 
             case "reset_cfk100":
                 context.filaCFK100.length = 0;
                 await context.salvarDados();
                 atualizarListaCompleta(context.client);
-                return adminSucesso("Makyo Avançado resetado.");
-
-            case "banir_membro":
-                context.esperandoBan = interaction.user.id;
-                await context.salvarDados();
-                return adminSucesso("Marque o jogador para banir.");
-
-            case "desbanir_membro":
-                context.esperandoUnban = interaction.user.id;
-                await context.salvarDados();
-                return adminSucesso("Marque o jogador para desbanir.");
+                return sucesso("Makyo Avançado resetado.");
 
             case "ver_banidos":
-                const lista = context.banidosMakyo.length ? context.banidosMakyo.join("\n") : "Nenhum jogador.";
-                return interaction.followUp({ embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)], ephemeral: true });
+                const lista = context.banidosMakyo.length
+                    ? context.banidosMakyo.join("\n")
+                    : "Nenhum jogador.";
+
+                return interaction.followUp({
+                    embeds: [new EmbedBuilder().setColor(0xED4245).setTitle("🚫 Banidos").setDescription(lista)],
+                    ephemeral: true
+                });
 
             // ===== GUERRA =====
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
                 atualizarListaGuerra(context.client);
-                return adminSucesso("Titulares limpos.");
+                return sucesso("Titulares limpos.");
 
             case "limpar_reserva":
                 context.filaGuerra.splice(limiteTitular);
                 await context.salvarDados();
                 atualizarListaGuerra(context.client);
-                return adminSucesso("Reservas limpas.");
-
-            case "remover_jogador":
-                context.esperandoRemover = interaction.user.id;
-                return adminSucesso("Marque o jogador para remover da Guerra.");
-
-            // ===== MODERAÇÃO =====
-            case "banir_jogador":
-                context.esperandoBan = interaction.user.id;
-                return adminSucesso("Marque o jogador para banir.");
-
-            case "blacklist":
-                context.esperandoBlacklist = interaction.user.id;
-                return adminSucesso("Marque o jogador para colocar na Blacklist.");
+                return sucesso("Reservas limpas.");
         }
     });
 };
