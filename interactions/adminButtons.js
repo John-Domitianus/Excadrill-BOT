@@ -16,6 +16,7 @@ module.exports = (client, context) => {
         ];
 
         if (!adminButtons.includes(interaction.customId)) return;
+        await interaction.deferUpdate();
 
         // Permissão apenas para administradores
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
