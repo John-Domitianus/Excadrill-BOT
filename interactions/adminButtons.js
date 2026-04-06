@@ -10,15 +10,10 @@ const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
 
-module.exports = (client, context) => {
-    client.on("interactionCreate", async (interaction) => {
-
-        
-        if (!interaction.isButton()) return;
-        if (!adminButtons.includes(interaction.customId)) return;
-        
-        await interaction.deferUpdate().catch(() => {});
-        if (!context.dadosCarregados) return;
+module.exports = async (interaction, context) => {
+   
+        if (!interaction.isButton()) return false;     
+        if (!context.dadosCarregados) return false;
 
 
         const adminButtons = [
@@ -61,6 +56,7 @@ module.exports = (client, context) => {
                         )
                     ]
                 });
+                return true;
 
             case "admin_guerra":
                 return interaction.editReply({
@@ -76,6 +72,7 @@ module.exports = (client, context) => {
                         )
                     ]
                 });
+                return true;
 
             case "admin_moderacao":
                 return interaction.editReply({
@@ -90,6 +87,7 @@ module.exports = (client, context) => {
                         )
                     ]
                 });
+                return true;
 
             case "voltar_admin":
                 return interaction.editReply({
@@ -102,36 +100,41 @@ module.exports = (client, context) => {
                         )
                     ]
                 });
+                return true;
 
             // ================= MAKYO =================
             case "reset_cfk":
                 context.filaCFK.length = 0;
                 await context.salvarDados();
-                atualizarListaCompleta(client);
-                return sucesso("Makyo resetado.");
+                atualizarListaCompleta(context.client);
+                sucesso("Makyo resetado.");
+                return true;
 
             case "reset_cfk100":
                 context.filaCFK100.length = 0;
                 await context.salvarDados();
-                atualizarListaCompleta(client);
-                return sucesso("Makyo Avançado resetado.");
+                atualizarListaCompleta(context.client);
+                sucesso("Makyo Avançado resetado.");
+                return true;
 
             case "banir_membro":
                 context.esperandoBan = interaction.user.id;
                 await context.salvarDados();
-                return sucesso("Marque o jogador para banir.");
+                sucesso("Marque o jogador para banir.");
+                return true;
 
             case "desbanir_membro":
                 context.esperandoUnban = interaction.user.id;
                 await context.salvarDados();
-                return sucesso("Marque o jogador para desbanir.");
+                sucesso("Marque o jogador para desbanir.");
+                return true;
 
             case "ver_banidos":
                 const lista = context.banidosMakyo.length
                     ? context.banidosMakyo.join("\n")
                     : "Nenhum jogador.";
 
-                return interaction.followUp({
+                await interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xED4245)
@@ -140,32 +143,39 @@ module.exports = (client, context) => {
                     ],
                     ephemeral: true
                 });
+                return true;
 
             // ================= GUERRA =================
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
-                atualizarListaGuerra(client);
-                return sucesso("Titulares limpos.");
+                atualizarListaGuerra(context.client);
+                sucesso("Titulares limpos.");
+                return true;
 
             case "limpar_reserva":
                 context.filaGuerra.splice(limiteTitular);
                 await context.salvarDados();
-                atualizarListaGuerra(client);
-                return sucesso("Reservas limpas.");
+                atualizarListaGuerra(context.client);
+                sucesso("Reservas limpas.");
+                return true;
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-                return sucesso("Marque o jogador para remover da Guerra.");
-
+                sucesso("Marque o jogador para remover da Guerra.");
+                return true;
             // ================= MODERAÇÃO =================
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
-                return sucesso("Marque o jogador para banir.");
-
+                sucesso("Marque o jogador para banir.");
+                return true;
+                
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
-                return sucesso("Marque o jogador para colocar na Blacklist.");
+                sucesso("Marque o jogador para colocar na Blacklist.");
+                return true;
         }
-    });
-};
+        return false;
+    };
+    
+     
