@@ -172,7 +172,9 @@ module.exports = async (interaction, context) => {
                 
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
-                sucesso("Marque o jogador para colocar na Blacklist.");
+                context.etapaBlacklist = "id";
+                context.tempBlacklist = {};
+                sucesso("Digite o ID (15 números).");
                 return true;
         }
         return false;
