@@ -2,6 +2,7 @@
 const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
+const adminHandler = require("./adminButtons");
 
 
 function hoje() {
@@ -23,6 +24,9 @@ module.exports = (client, context) => {
 
         const nome = interaction.member.displayName;
         const hora = pegarHorario();
+
+        const handled = await adminHandler(interaction, context);
+        if (handled) return;
 
         const erro = (msg) => interaction.followUp({ embeds: [embedErro(msg)], ephemeral: true });
         const sucesso = (msg) => interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
