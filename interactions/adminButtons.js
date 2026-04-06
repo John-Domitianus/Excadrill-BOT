@@ -14,16 +14,21 @@ module.exports = async (data, context) => {
     const isInteraction = data.isButton && data.isButton();
     const isMessage = data.author && data.content;
 
+    if (!context.dadosCarregados) return;
+
+    const sucesso = (msg) => data.followUp
+        ? data.followUp({ embeds: [embedSucesso(msg)], ephemeral: true })
+        : null;
+
+    // ================= INTERACTIONS =================
     if (isInteraction) {
         const interaction = data;
 
-        if (!context.dadosCarregados) return;
-
         const adminButtons = [
             "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
-            "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
-            "limpar_titular", "limpar_reserva", "remover_jogador",
-            "banir_jogador", "blacklist"
+            "reset_cfk", "reset_cfk100", "banir_membro", "banir_jogador", "desbanir_membro",
+            "ver_banidos", "limpar_titular", "limpar_reserva", "remover_jogador",
+            "blacklist", "ver_blacklist", "ver_removidos"
         ];
 
         if (!adminButtons.includes(interaction.customId) && !interaction.customId.startsWith("jogador_")) return false;
@@ -36,57 +41,13 @@ module.exports = async (data, context) => {
             return true;
         }
 
-        const sucesso = (msg) =>
-            interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
+        // ================= CLIQUE EM JOGADOR (NÃO USADO MAIS) =================
+        if (interaction.customId.startsWith("jogador_")) return false;
 
-        // ================= HANDLER DE CLIQUE DO JOGADOR =================
-        if (interaction.customId.startsWith("jogador_")) {
-            const jogadorId = interaction.customId.split("_")[1];
-
-            // Banir jogador (banir_membro ou banir_jogador)
-            if (context.esperandoBan === interaction.user.id) {
-                if (!context.banidosMakyo.includes(jogadorId)) {
-                    context.banidosMakyo.push(jogadorId);
-                    context.esperandoBan = null;
-                    await context.salvarDados();
-                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} banido com sucesso!`, ephemeral: true });
-                } else {
-                    return interaction.followUp({ content: "❌ Jogador já está banido.", ephemeral: true });
-                }
-            }
-
-            // Desbanir jogador
-            if (context.esperandoUnban === interaction.user.id) {
-                const index = context.banidosMakyo.indexOf(jogadorId);
-                if (index > -1) {
-                    context.banidosMakyo.splice(index, 1);
-                    context.esperandoUnban = null;
-                    await context.salvarDados();
-                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} desbanido com sucesso!`, ephemeral: true });
-                } else {
-                    return interaction.followUp({ content: "❌ Jogador não está banido.", ephemeral: true });
-                }
-            }
-
-            // Remover jogador da Guerra
-            if (context.esperandoRemover === interaction.user.id) {
-                const index = context.filaGuerra.indexOf(jogadorId);
-                if (index > -1) {
-                    context.filaGuerra.splice(index, 1);
-                    context.esperandoRemover = null;
-                    await context.salvarDados();
-                    atualizarListaGuerra(context.client);
-                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} removido da Guerra.`, ephemeral: true });
-                } else {
-                    return interaction.followUp({ content: "❌ Jogador não está na Guerra.", ephemeral: true });
-                }
-            }
-        }
-
-        // ================= SWITCH DE BOTÕES DO PAINEL =================
+        // ================= SWITCH DE BOTÕES =================
         switch (interaction.customId) {
 
-            // ================= MENU =================
+            // ================= MENUS =================
             case "admin_makyo":
                 return interaction.editReply({
                     embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
@@ -116,6 +77,7 @@ module.exports = async (data, context) => {
                             new ButtonBuilder().setCustomId("remover_jogador").setLabel("Remover Jogador").setStyle(ButtonStyle.Danger)
                         ),
                         new ActionRowBuilder().addComponents(
+                            new ButtonBuilder().setCustomId("ver_removidos").setLabel("Ver Removidos").setStyle(ButtonStyle.Primary),
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
                         )
                     ]
@@ -127,7 +89,8 @@ module.exports = async (data, context) => {
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("banir_jogador").setLabel("Banir jogador").setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder().setCustomId("blacklist").setLabel("Blacklist").setStyle(ButtonStyle.Secondary)
+                            new ButtonBuilder().setCustomId("blacklist").setLabel("Blacklist").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId("ver_blacklist").setLabel("Ver Blacklist").setStyle(ButtonStyle.Primary)
                         ),
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("voltar_admin").setLabel("Voltar").setStyle(ButtonStyle.Secondary)
@@ -152,37 +115,35 @@ module.exports = async (data, context) => {
                 context.filaCFK.length = 0;
                 await context.salvarDados();
                 atualizarListaCompleta(context.client);
-                sucesso("Makyo resetado.");
-                return true;
+                return sucesso("Makyo resetado.");
 
             case "reset_cfk100":
                 context.filaCFK100.length = 0;
                 await context.salvarDados();
                 atualizarListaCompleta(context.client);
-                sucesso("Makyo Avançado resetado.");
-                return true;
+                return sucesso("Makyo Avançado resetado.");
 
             case "banir_membro":
+            case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
-                await context.salvarDados();
-                return interaction.followUp({ content: "Marque o jogador para banir.", ephemeral: true });
+                context.etapaBan = "marcar";
+                return interaction.followUp({ content: "❗ Marque o jogador para banir.", ephemeral: true });
 
             case "desbanir_membro":
                 context.esperandoUnban = interaction.user.id;
-                await context.salvarDados();
-                return interaction.followUp({ content: "Marque o jogador para desbanir.", ephemeral: true });
+                return interaction.followUp({ content: "❗ Marque o jogador para desbanir.", ephemeral: true });
 
             case "ver_banidos":
-                const lista = context.banidosMakyo.length
-                    ? context.banidosMakyo.join("\n")
-                    : "Nenhum jogador.";
+                const listaBanidos = context.banidosMakyo.length
+                    ? context.banidosMakyo.map(p => `Nick: ${p.nome} | Motivo: ${p.motivo || "Sem motivo"}`).join("\n")
+                    : "Nenhum jogador banido.";
 
                 return interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xED4245)
                             .setTitle("🚫 Banidos")
-                            .setDescription(lista)
+                            .setDescription(listaBanidos)
                     ],
                     ephemeral: true
                 });
@@ -192,71 +153,122 @@ module.exports = async (data, context) => {
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
                 atualizarListaGuerra(context.client);
-                sucesso("Titulares limpos.");
-                return true;
+                return sucesso("Titulares limpos.");
 
             case "limpar_reserva":
                 context.filaGuerra.splice(limiteTitular);
                 await context.salvarDados();
                 atualizarListaGuerra(context.client);
-                sucesso("Reservas limpas.");
-                return true;
+                return sucesso("Reservas limpas.");
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-                await context.salvarDados();
-                return interaction.followUp({ content: "Marque o jogador para remover da Guerra.", ephemeral: true });
+                context.etapaBan = "marcarRemover";
+                return interaction.followUp({ content: "❗ Marque o jogador para remover da Guerra.", ephemeral: true });
+
+            case "ver_removidos":
+                const removidos = context.removidosGuerra?.length
+                    ? context.removidosGuerra.map(p => `Nick: ${p.nome} | Motivo: ${p.motivo}`).join("\n")
+                    : "Nenhum jogador removido.";
+
+                return interaction.followUp({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xED4245)
+                            .setTitle("🗑️ Jogadores removidos da Guerra")
+                            .setDescription(removidos)
+                    ],
+                    ephemeral: true
+                });
 
             // ================= MODERAÇÃO =================
-            case "banir_jogador":
-                context.esperandoBan = interaction.user.id;
-                await context.salvarDados();
-                return interaction.followUp({ content: "Marque o jogador para banir.", ephemeral: true });
-
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
                 context.etapaBlacklist = "id";
                 context.tempBlacklist = {};
-                sucesso("Digite o ID (15 números).");
-                return true;
+                return sucesso("Digite o ID (15 números).");
+
+            case "ver_blacklist":
+                const listaBlacklist = context.listaNegra.length
+                    ? context.listaNegra.map(j => `ID: ${j.id} | Nick: ${j.nome}`).join("\n")
+                    : "Nenhum jogador na blacklist.";
+
+                return interaction.followUp({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xED4245)
+                            .setTitle("🚫 Blacklist")
+                            .setDescription(listaBlacklist)
+                    ],
+                    ephemeral: true
+                });
         }
     }
 
-    // ================= BLACKLIST =================
+    // ================= MESSAGES =================
     if (isMessage) {
         const message = data;
 
+        // --------------- BLACKLIST ---------------
         if (context.esperandoBlacklist === message.author.id) {
             const content = message.content.trim();
 
-            // ETAPA 1 - ID
             if (context.etapaBlacklist === "id") {
-                if (!/^\d{15}$/.test(content)) {
-                    return message.reply("❌ ID inválido. Deve ter 15 números.");
-                }
-
+                if (!/^\d{15}$/.test(content)) return message.reply("❌ ID inválido. Deve ter 15 números.");
                 context.tempBlacklist.id = content;
                 context.etapaBlacklist = "nome";
-
                 return message.reply("✏️ Agora digite o nick.");
             }
 
-            // ETAPA 2 - NOME
             if (context.etapaBlacklist === "nome") {
                 context.tempBlacklist.nome = content;
-
                 context.listaNegra.push({
                     nome: context.tempBlacklist.nome,
                     id: context.tempBlacklist.id
                 });
-
                 await context.salvarDados();
-
                 context.esperandoBlacklist = null;
                 context.etapaBlacklist = null;
                 context.tempBlacklist = null;
-
                 return message.reply("✅ Jogador adicionado à blacklist.");
+            }
+        }
+
+        // --------------- BAN/REMOVE -----------------
+        if (context.esperandoBan === message.author.id || context.esperandoRemover === message.author.id) {
+            const step = context.etapaBan;
+            const isBan = context.esperandoBan === message.author.id;
+
+            // Etapa 1 - marcar jogador
+            if (step === "marcar" || step === "marcarRemover") {
+                const mention = message.mentions.members.first();
+                if (!mention) return message.reply("❌ Marque um jogador válido.");
+
+                context.tempBan = { id: mention.id, nome: mention.user.username };
+                context.etapaBan = "motivo";
+                return message.reply("✏️ Digite o motivo da ação.");
+            }
+
+            // Etapa 2 - motivo
+            if (step === "motivo") {
+                const motivo = message.content.trim();
+                const { id, nome } = context.tempBan;
+
+                if (isBan) {
+                    context.banidosMakyo.push({ id, nome, motivo });
+                    context.esperandoBan = null;
+                } else {
+                    context.filaGuerra = context.filaGuerra.filter(p => p.nome !== nome);
+                    context.removidosGuerra = context.removidosGuerra || [];
+                    context.removidosGuerra.push({ id, nome, motivo });
+                    context.esperandoRemover = null;
+                }
+
+                await context.salvarDados();
+                context.etapaBan = null;
+                context.tempBan = null;
+
+                return message.reply(`✅ Ação aplicada em ${nome} com motivo: "${motivo}"`);
             }
         }
     }
