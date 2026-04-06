@@ -20,8 +20,9 @@ module.exports = (client, context) => {
         if (!context.dadosCarregados) return;
         if (!interaction.isButton()) return;
 
-        await interaction.deferUpdate(); // evita erro de múltiplas respostas
-
+       if (!interaction.deferred && !interaction.replied) {
+         await interaction.deferUpdate();
+}
         const nome = interaction.member.displayName;
         const hora = pegarHorario();
 
