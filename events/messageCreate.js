@@ -13,9 +13,15 @@ const {
 } = require("../services/dataManager");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 
+// VARIAVEIS DE CONTROLE
 let esperandoNick = null;
 let esperandoBan = null;
 let esperandoUnban = null;
+let esperandoBlacklist = null;
+let etapaBlacklist = null;
+let tempBlacklist = null;
+
+
 
 function hoje() {
     const d = new Date();
@@ -41,6 +47,9 @@ module.exports = (client) => {
             esperandoNick,
             esperandoBan,
             esperandoUnban,
+            esperandoBlacklist,
+            etapaBlacklist,
+            tempBlacklist,
             canalPyaku,
             canalFilaCompleta,
             filaCFK,
@@ -80,5 +89,8 @@ module.exports = (client) => {
         esperandoNick = context.esperandoNick;
         esperandoBan = context.esperandoBan;
         esperandoUnban = context.esperandoUnban;
+        esperandoBlacklist = context.esperandoBlacklist;
+        etapaBlacklist = context.etapaBlacklist;
+        tempBlacklist = context.tempBlacklist;
     });
 };
