@@ -14,20 +14,19 @@ module.exports = async (data, context) => {
     const isInteraction = data.isButton && data.isButton();
     const isMessage = data.author && data.content;
 
-    
     if (isInteraction) {
         const interaction = data;
 
         if (!context.dadosCarregados) return;
 
         const adminButtons = [
-         "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
-         "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
-         "limpar_titular", "limpar_reserva", "remover_jogador",
-         "banir_jogador", "blacklist"
-          ];
+            "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
+            "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
+            "limpar_titular", "limpar_reserva", "remover_jogador",
+            "banir_jogador", "blacklist"
+        ];
 
-        if (!adminButtons.includes(interaction.customId)) return false;
+        if (!adminButtons.includes(interaction.customId) && !interaction.customId.startsWith("jogador_")) return false;
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             await interaction.followUp({
@@ -39,8 +38,52 @@ module.exports = async (data, context) => {
 
         const sucesso = (msg) =>
             interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
-        
 
+        // ================= HANDLER DE CLIQUE DO JOGADOR =================
+        if (interaction.customId.startsWith("jogador_")) {
+            const jogadorId = interaction.customId.split("_")[1];
+
+            // Banir jogador (banir_membro ou banir_jogador)
+            if (context.esperandoBan === interaction.user.id) {
+                if (!context.banidosMakyo.includes(jogadorId)) {
+                    context.banidosMakyo.push(jogadorId);
+                    context.esperandoBan = null;
+                    await context.salvarDados();
+                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} banido com sucesso!`, ephemeral: true });
+                } else {
+                    return interaction.followUp({ content: "❌ Jogador já está banido.", ephemeral: true });
+                }
+            }
+
+            // Desbanir jogador
+            if (context.esperandoUnban === interaction.user.id) {
+                const index = context.banidosMakyo.indexOf(jogadorId);
+                if (index > -1) {
+                    context.banidosMakyo.splice(index, 1);
+                    context.esperandoUnban = null;
+                    await context.salvarDados();
+                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} desbanido com sucesso!`, ephemeral: true });
+                } else {
+                    return interaction.followUp({ content: "❌ Jogador não está banido.", ephemeral: true });
+                }
+            }
+
+            // Remover jogador da Guerra
+            if (context.esperandoRemover === interaction.user.id) {
+                const index = context.filaGuerra.indexOf(jogadorId);
+                if (index > -1) {
+                    context.filaGuerra.splice(index, 1);
+                    context.esperandoRemover = null;
+                    await context.salvarDados();
+                    atualizarListaGuerra(context.client);
+                    return interaction.followUp({ content: `✅ Jogador ${jogadorId} removido da Guerra.`, ephemeral: true });
+                } else {
+                    return interaction.followUp({ content: "❌ Jogador não está na Guerra.", ephemeral: true });
+                }
+            }
+        }
+
+        // ================= SWITCH DE BOTÕES DO PAINEL =================
         switch (interaction.customId) {
 
             // ================= MENU =================
@@ -62,7 +105,6 @@ module.exports = async (data, context) => {
                         )
                     ]
                 });
-                return true;
 
             case "admin_guerra":
                 return interaction.editReply({
@@ -78,7 +120,6 @@ module.exports = async (data, context) => {
                         )
                     ]
                 });
-                return true;
 
             case "admin_moderacao":
                 return interaction.editReply({
@@ -93,7 +134,6 @@ module.exports = async (data, context) => {
                         )
                     ]
                 });
-                return true;
 
             case "voltar_admin":
                 return interaction.editReply({
@@ -106,7 +146,6 @@ module.exports = async (data, context) => {
                         )
                     ]
                 });
-                return true;
 
             // ================= MAKYO =================
             case "reset_cfk":
@@ -126,21 +165,19 @@ module.exports = async (data, context) => {
             case "banir_membro":
                 context.esperandoBan = interaction.user.id;
                 await context.salvarDados();
-                sucesso("Marque o jogador para banir.");
-                return true;
+                return interaction.followUp({ content: "Marque o jogador para banir.", ephemeral: true });
 
             case "desbanir_membro":
                 context.esperandoUnban = interaction.user.id;
                 await context.salvarDados();
-                sucesso("Marque o jogador para desbanir.");
-                return true;
+                return interaction.followUp({ content: "Marque o jogador para desbanir.", ephemeral: true });
 
             case "ver_banidos":
                 const lista = context.banidosMakyo.length
                     ? context.banidosMakyo.join("\n")
                     : "Nenhum jogador.";
 
-                await interaction.followUp({
+                return interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xED4245)
@@ -149,7 +186,6 @@ module.exports = async (data, context) => {
                     ],
                     ephemeral: true
                 });
-                return true;
 
             // ================= GUERRA =================
             case "limpar_titular":
@@ -168,14 +204,15 @@ module.exports = async (data, context) => {
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-                sucesso("Marque o jogador para remover da Guerra.");
-                return true;
+                await context.salvarDados();
+                return interaction.followUp({ content: "Marque o jogador para remover da Guerra.", ephemeral: true });
+
             // ================= MODERAÇÃO =================
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
-                sucesso("Marque o jogador para banir.");
-                return true;
-                
+                await context.salvarDados();
+                return interaction.followUp({ content: "Marque o jogador para banir.", ephemeral: true });
+
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
                 context.etapaBlacklist = "id";
@@ -183,17 +220,14 @@ module.exports = async (data, context) => {
                 sucesso("Digite o ID (15 números).");
                 return true;
         }
-        return false;
-        }
-        // FUNCIONAMENTO DA BLACK LIST 
+    }
 
-        if (isMessage) {
+    // ================= BLACKLIST =================
+    if (isMessage) {
         const message = data;
 
         if (context.esperandoBlacklist === message.author.id) {
             const content = message.content.trim();
-
-            console.log("DEBUG BLACKLIST:", content);
 
             // ETAPA 1 - ID
             if (context.etapaBlacklist === "id") {
@@ -227,4 +261,3 @@ module.exports = async (data, context) => {
         }
     }
 };
-        
