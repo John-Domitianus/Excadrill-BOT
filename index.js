@@ -37,7 +37,7 @@ require("./database/connect")();
         require("./events/ready")(client, context);
         require("./events/messageCreate")(client, context);
         require("./interactions/buttons")(client, context);
-        require("./interactions/adminButtons")(client, context)
+        
         
 
         console.log("✅ Bot e contexto inicializados com sucesso!");
