@@ -10,30 +10,36 @@ const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteTitular } = require("../config/constants");
 
-module.exports = async (interaction, context) => {
-   
-        if (!interaction.isButton()) return;     
+module.exports = async (data, context) => {
+    const isInteraction = data.isButton && data.isButton();
+    const isMessage = data.author && data.content;
+
+    
+    if (isInteraction) {
+        const interaction = data;
+
         if (!context.dadosCarregados) return;
 
-
         const adminButtons = [
-            "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
-            "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
-            "limpar_titular", "limpar_reserva", "remover_jogador",
-            "banir_jogador", "blacklist"
-        ];
+         "admin_makyo", "admin_guerra", "admin_moderacao", "voltar_admin",
+         "reset_cfk", "reset_cfk100", "banir_membro", "desbanir_membro", "ver_banidos",
+         "limpar_titular", "limpar_reserva", "remover_jogador",
+         "banir_jogador", "blacklist"
+          ];
 
-        if (!adminButtons.includes(interaction.customId)) return;
+        if (!adminButtons.includes(interaction.customId)) return false;
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return interaction.followUp({
+            await interaction.followUp({
                 embeds: [embedErro("❌ Sem permissão.")],
                 ephemeral: true
             });
+            return true;
         }
 
         const sucesso = (msg) =>
             interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
+        
 
         switch (interaction.customId) {
 
@@ -178,6 +184,47 @@ module.exports = async (interaction, context) => {
                 return true;
         }
         return false;
-    };
-    
-     
+        }
+        // FUNCIONAMENTO DA BLACK LIST 
+
+        if (isMessage) {
+        const message = data;
+
+        if (context.esperandoBlacklist === message.author.id) {
+            const content = message.content.trim();
+
+            console.log("DEBUG BLACKLIST:", content);
+
+            // ETAPA 1 - ID
+            if (context.etapaBlacklist === "id") {
+                if (!/^\d{15}$/.test(content)) {
+                    return message.reply("❌ ID inválido. Deve ter 15 números.");
+                }
+
+                context.tempBlacklist.id = content;
+                context.etapaBlacklist = "nome";
+
+                return message.reply("✏️ Agora digite o nick.");
+            }
+
+            // ETAPA 2 - NOME
+            if (context.etapaBlacklist === "nome") {
+                context.tempBlacklist.nome = content;
+
+                context.listaNegra.push({
+                    nome: context.tempBlacklist.nome,
+                    id: context.tempBlacklist.id
+                });
+
+                await context.salvarDados();
+
+                context.esperandoBlacklist = null;
+                context.etapaBlacklist = null;
+                context.tempBlacklist = null;
+
+                return message.reply("✅ Jogador adicionado à blacklist.");
+            }
+        }
+    }
+};
+        
