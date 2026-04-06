@@ -155,4 +155,10 @@ module.exports = (client, context) => {
                 });
             }
     });
+    client.on("messageCreate", async (message) => {
+        if (!context.dadosCarregados) return;
+        if (message.author.bot) return;
+
+        await adminHandler(message, context);
+    });
 };
