@@ -12,8 +12,8 @@ const { limiteTitular } = require("../config/constants");
 
 module.exports = async (interaction, context) => {
    
-        if (!interaction.isButton()) return false;     
-        if (!context.dadosCarregados) return false;
+        if (!interaction.isButton()) return;     
+        if (!context.dadosCarregados) return;
 
 
         const adminButtons = [
