@@ -19,6 +19,7 @@ let filaCFK = [];
 let filaCFK100 = [];
 let filaGuerra = [];
 let banidosMakyo = [];
+let listaNegra = [];
 let dadosCarregados = false;
 
 async function carregarDadosMongo() {
@@ -31,7 +32,9 @@ async function carregarDadosMongo() {
         filaCFK100.push(...(dados.filaCFK100 || []));
         filaGuerra.push(...(dados.filaGuerra || []));
         banidosMakyo.push(...(dados.banidosMakyo || []));
+        listaNegra.push(...(dados.listaNegra || []));
     }
+    console.log("Blacklist:", listaNegra); //Para verificar carregamento de DataBase
     dadosCarregados = true;
 }
 
@@ -43,7 +46,8 @@ async function salvarDados() {
         filaCFK,
         filaCFK100,
         filaGuerra,
-        banidosMakyo
+        banidosMakyo,
+        listaNegra
     }, { upsert: true });
 }
 
@@ -62,5 +66,6 @@ module.exports = {
     dadosCarregados,
     carregarDadosMongo,
     salvarDados,
-    resetDiario
+    resetDiario,
+    listaNegra
 };
