@@ -1,4 +1,4 @@
-const { PermissionsBitField } = require("discord.js");
+const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 const { embedSucesso, embedErro } = require("../utils/embeds");
 const {
     canalPyaku,
@@ -37,9 +37,25 @@ module.exports = (client) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
-        // comando de teste rápido
-        if (message.content === "!ping") {
-            return message.reply("Pong!");
+        // ======= MENÇÃO AO BOT =======
+        const botMention = `<@${client.user.id}>`;
+        const botNicknameMention = `<@!${client.user.id}>`; // em alguns casos aparece assim
+        if (
+            (message.content === botMention || message.content === botNicknameMention)
+        ) {
+            const embed = new EmbedBuilder()
+                .setTitle("🤖 Olá! Eu sou o Pyaku, o BOT personalizado da Escola Jujutsu Ragnarok!")
+                .setDescription(
+                    "Aqui estão os comandos que você pode usar:\n" +
+                    "• `!nick` — Alterar seu nick\n" +
+                    "• `!makyo` — Comandos relacionados ao Makyo\n" +
+                    "• `!guerra` — Comandos relacionados à Guerra\n" +
+                    "• `!admin` — Painel de administração (somente para admins)\n\n"
+                 )
+                .setColor(0x00FFFF)
+                .setFooter({ text: "Desenvolvido por: Sushi!" });
+
+            return message.reply({ embeds: [embed] });
         }
 
         // contexto compartilhado para todos os comandos
@@ -66,6 +82,8 @@ module.exports = (client) => {
 
         // lista de comandos
         const comandos = [
+            "../commands/setban",
+            "../commands/setfila",
             "../commands/nick",
             "../commands/makyo",
             "../commands/guerra",

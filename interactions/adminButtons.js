@@ -157,6 +157,7 @@ module.exports = async (data, context) => {
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
                 context.etapaBan = "marcarRemover";
+                atualizarListaGuerra(context.client);
                 return interaction.followUp({ content: "❗ Marque o jogador para remover da Guerra.", ephemeral: true });
 
             case "ver_removidos":
@@ -320,7 +321,7 @@ module.exports = async (data, context) => {
                 context.tempBan = null;
                 context.tipoBan = null;
 
-                return message.reply(`✅ Jogador removido da Guerra ${nome} Justificativa: "${motivo}"`);
+                return message.reply(`✅ Jogador Removido ${nome} Motivo: "${motivo}"`);
             } // fecha if (step === "motivo")
         } // fecha if (context.esperandoBan || context.esperandoRemover)
     } // fecha if (isMessage)
