@@ -3,6 +3,7 @@
 const DadosSchema = new mongoose.Schema({
     canalPyaku: String,
     canalFilaCompleta: String,
+    canalBan: String,
     controleDiario: Object,
     filaCFK: Array,
     filaCFK100: Array,
@@ -14,6 +15,7 @@ const Dados = mongoose.model("Dados", DadosSchema);
 
 let canalPyaku = null;
 let canalFilaCompleta = null;
+let canalBan = null;
 let controleDiario = {};
 let filaCFK = [];
 let filaCFK100 = [];
@@ -27,6 +29,7 @@ async function carregarDadosMongo() {
     if (dados) {
         canalPyaku = dados.canalPyaku;
         canalFilaCompleta = dados.canalFilaCompleta;
+        canalBan = dados.canalBan;
         Object.assign(controleDiario, dados.controleDiario || {});
         filaCFK.push(...(dados.filaCFK || []));
         filaCFK100.push(...(dados.filaCFK100 || []));
@@ -42,6 +45,7 @@ async function salvarDados() {
     await Dados.findOneAndUpdate({}, {
         canalPyaku,
         canalFilaCompleta,
+        canalBan,
         controleDiario,
         filaCFK,
         filaCFK100,
@@ -58,6 +62,7 @@ function resetDiario() {
 module.exports = {
     canalPyaku,
     canalFilaCompleta,
+    canalBan,
     controleDiario,
     filaCFK,
     filaCFK100,
