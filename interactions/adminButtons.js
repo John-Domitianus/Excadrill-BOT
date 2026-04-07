@@ -41,13 +41,9 @@ module.exports = async (data, context) => {
             return true;
         }
 
-        // ================= CLIQUE EM JOGADOR (NÃO USADO MAIS) =================
         if (interaction.customId.startsWith("jogador_")) return false;
 
-        // ================= SWITCH DE BOTÕES =================
         switch (interaction.customId) {
-
-            // ================= MENUS =================
             case "admin_makyo":
                 return interaction.editReply({
                     embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
@@ -110,7 +106,6 @@ module.exports = async (data, context) => {
                     ]
                 });
 
-            // ================= MAKYO =================
             case "reset_cfk":
                 context.filaCFK.length = 0;
                 await context.salvarDados();
@@ -137,7 +132,6 @@ module.exports = async (data, context) => {
                 const listaBanidos = context.banidosMakyo.length
                     ? context.banidosMakyo.map(p => `Nick: ${p.nome} | Motivo: ${p.motivo || "Sem motivo"}`).join("\n")
                     : "Nenhum jogador banido.";
-
                 return interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
@@ -148,7 +142,6 @@ module.exports = async (data, context) => {
                     ephemeral: true
                 });
 
-            // ================= GUERRA =================
             case "limpar_titular":
                 context.filaGuerra.splice(0, limiteTitular);
                 await context.salvarDados();
@@ -170,7 +163,6 @@ module.exports = async (data, context) => {
                 const removidos = context.removidosGuerra?.length
                     ? context.removidosGuerra.map(p => `Nick: ${p.nome} | Motivo: ${p.motivo}`).join("\n")
                     : "Nenhum jogador removido.";
-
                 return interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
@@ -181,7 +173,6 @@ module.exports = async (data, context) => {
                     ephemeral: true
                 });
 
-            // ================= MODERAÇÃO =================
             case "blacklist":
                 context.esperandoBlacklist = interaction.user.id;
                 context.etapaBlacklist = "id";
@@ -192,7 +183,6 @@ module.exports = async (data, context) => {
                 const listaBlacklist = context.listaNegra.length
                     ? context.listaNegra.map(j => `ID: ${j.id} | Nick: ${j.nome}`).join("\n")
                     : "Nenhum jogador na blacklist.";
-
                 return interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
@@ -202,6 +192,7 @@ module.exports = async (data, context) => {
                     ],
                     ephemeral: true
                 });
+
             case "banir_jogador":
                 context.esperandoBan = interaction.user.id;
                 context.etapaBan = "marcar";
@@ -209,7 +200,7 @@ module.exports = async (data, context) => {
                 return interaction.followUp({
                     content: "❗ Marque o jogador para banir do servidor.",
                     ephemeral: true
-                });    
+                });
         }
     }
 
@@ -217,15 +208,13 @@ module.exports = async (data, context) => {
     if (isMessage) {
         const message = data;
 
-      // --------------- DESBAN MAKYO -----------------
+        // --------------- DESBAN MAKYO -----------------
         if (context.esperandoUnban === message.author.id) {
             const mention = message.mentions.members.first();
             if (!mention) return message.reply("❌ Marque um jogador válido.");
 
             const id = mention.id;
-
             const antes = context.banidosMakyo.length;
-
             context.banidosMakyo = context.banidosMakyo.filter(p => p.id !== id);
 
             if (context.banidosMakyo.length === antes) {
@@ -234,7 +223,6 @@ module.exports = async (data, context) => {
 
             await context.salvarDados();
             context.esperandoUnban = null;
-
             return message.reply("✅ Jogador desbanido do Makyo.");
         }
 
@@ -264,77 +252,76 @@ module.exports = async (data, context) => {
         }
 
         // --------------- BAN/REMOVE -----------------
-// --------------- BAN/REMOVE -----------------
-    if (context.esperandoBan === message.author.id || context.esperandoRemover === message.author.id) {
-        const step = context.etapaBan;
-        const isBan = context.esperandoBan === message.author.id;
+        if (context.esperandoBan === message.author.id || context.esperandoRemover === message.author.id) {
+            const step = context.etapaBan;
+            const isBan = context.esperandoBan === message.author.id;
 
-        // Etapa 1 - marcar jogador
-        if (step === "marcar" || step === "marcarRemover") {
-            const mention = message.mentions.members.first();
-            if (!mention) return message.reply("❌ Marque um jogador válido.");
+            // Etapa 1 - marcar jogador
+            if (step === "marcar" || step === "marcarRemover") {
+                const mention = message.mentions.members.first();
+                if (!mention) return message.reply("❌ Marque um jogador válido.");
 
-            context.tempBan = { id: mention.id, nome: mention.user.username };
-            context.etapaBan = "motivo";
-            return message.reply("✏️ Digite o motivo da ação.");
-        }
-
-        // Etapa 2 - motivo
-        if (step === "motivo") {
-            const motivo = message.content.trim();
-            const { id, nome } = context.tempBan;
-
-            if (isBan) {
-                // 🔥 BAN DO DISCORD
-                if (context.tipoBan === "discord") {
-                    try {
-                        const member = await message.guild.members.fetch(id).catch(() => null);
-
-                        if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
-                        if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
-
-                        await member.ban({ reason: motivo });
-
-                        // 📢 LOG NO CANAL (embed)
-                        const canalLog = message.guild.channels.cache.get(context.canalBan);
-                        if (canalLog) {
-                            const embed = new EmbedBuilder()
-                                .setTitle("🚫 Jogador banido")
-                                .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
-                                .setColor(0xED4245);
-                            canalLog.send({ embeds: [embed] });
-                        }
-
-                    } catch (err) {
-                        console.error(err);
-                        return message.reply("❌ Erro ao banir do servidor.");
-                    }
-                }
-                
-                // ✅ BAN MAKYO
-                if (context.tipoBan === "makyo") {
-                    context.banidosMakyo.push({ id, nome, motivo });
-                }
-
-                context.esperandoBan = null;
-
-            } else {
-                // 🔥 REMOÇÃO GUERRA
-                context.filaGuerra = context.filaGuerra.filter(p => p.id !== id);
-                context.removidosGuerra = context.removidosGuerra || [];
-                context.removidosGuerra.push({ id, nome, motivo });
-                context.esperandoRemover = null;
-
-                atualizarListaGuerra(context.client);
+                context.tempBan = { id: mention.id, nome: mention.user.username };
+                context.etapaBan = "motivo";
+                return message.reply("✏️ Digite o motivo da ação.");
             }
 
-            await context.salvarDados();
+            // Etapa 2 - motivo
+            if (step === "motivo") {
+                const motivo = message.content.trim();
+                const { id, nome } = context.tempBan;
 
-            context.etapaBan = null;
-            context.tempBan = null;
-            context.tipoBan = null;
+                if (isBan) {
+                    // 🔥 BAN DO DISCORD
+                    if (context.tipoBan === "discord") {
+                        try {
+                            const member = await message.guild.members.fetch(id).catch(() => null);
+                            if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
+                            if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
 
-            return message.reply(`✅ Ação aplicada em ${nome} com motivo: "${motivo}"`);
-        }
-    }
-};
+                            await member.ban({ reason: motivo });
+
+                            // 📢 LOG NO CANAL (embed)
+                            const canalLog = message.guild.channels.cache.get(context.canalBan);
+                            if (canalLog) {
+                                const embed = new EmbedBuilder()
+                                    .setTitle("🚫 Jogador banido")
+                                    .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
+                                    .setColor(0xED4245);
+                                canalLog.send({ embeds: [embed] });
+                            }
+
+                        } catch (err) {
+                            console.error(err);
+                            return message.reply("❌ Erro ao banir do servidor.");
+                        }
+                    }
+
+                    // ✅ BAN MAKYO
+                    if (context.tipoBan === "makyo") {
+                        context.banidosMakyo.push({ id, nome, motivo });
+                    }
+
+                    context.esperandoBan = null;
+
+                } else {
+                    // 🔥 REMOÇÃO GUERRA
+                    context.filaGuerra = context.filaGuerra.filter(p => p.id !== id);
+                    context.removidosGuerra = context.removidosGuerra || [];
+                    context.removidosGuerra.push({ id, nome, motivo });
+                    context.esperandoRemover = null;
+
+                    atualizarListaGuerra(context.client);
+                }
+
+                await context.salvarDados();
+
+                context.etapaBan = null;
+                context.tempBan = null;
+                context.tipoBan = null;
+
+                return message.reply(`✅ Jogador removido da Guerra ${nome} Justificativa: "${motivo}"`);
+            } // fecha if (step === "motivo")
+        } // fecha if (context.esperandoBan || context.esperandoRemover)
+    } // fecha if (isMessage)
+}; // fecha module.exports
