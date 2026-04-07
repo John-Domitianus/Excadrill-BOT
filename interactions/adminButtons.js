@@ -212,6 +212,7 @@ module.exports = async (data, context) => {
         if (context.esperandoRemover === message.author.id) {
             const step = context.etapaRemover;
 
+            // Etapa 1: marcar jogador
             if (step === "marcar") {
                 const mention = message.mentions.members.first();
                 if (!mention) return message.reply("❌ Marque um jogador válido.");
@@ -221,14 +222,27 @@ module.exports = async (data, context) => {
                 return message.reply("✏️ Digite o motivo da remoção.");
             }
 
+            // Etapa 2: motivo
             if (step === "motivo") {
                 const motivo = message.content.trim();
                 const { id, nome } = context.tempRemover;
 
-                context.filaGuerra = context.filaGuerra.filter(p => p.id !== id);
-                context.removidosGuerra = context.removidosGuerra || [];
-                context.removidosGuerra.push({ id, nome, motivo });
+                // Remove apenas o jogador marcado da lista de guerra
+                context.filaGuerra = context.filaGuerra.filter(p => p.nome !== nome);
+                if (index === -1) {
+                    context.esperandoRemover = null;
+                    context.etapaRemover = null;
+                    context.tempRemover = null;
+                    return message.reply("❌ Jogador não encontrado na fila de Guerra.");
+                }
 
+                const [removido] = context.filaGuerra.splice(index, 1);
+
+                // Adiciona o jogador removido na lista de removidos
+                context.removidosGuerra = context.removidosGuerra || [];
+                context.removidosGuerra.push({ id: removido.id, nome: removido.nome, motivo });
+
+                // Reset das variáveis de controle
                 context.esperandoRemover = null;
                 context.etapaRemover = null;
                 context.tempRemover = null;
