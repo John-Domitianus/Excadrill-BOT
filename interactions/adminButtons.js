@@ -156,8 +156,7 @@ module.exports = async (data, context) => {
 
             case "remover_jogador":
                 context.esperandoRemover = interaction.user.id;
-                context.etapaBan = "marcarRemover";
-                atualizarListaGuerra(context.client);
+                context.etapaRemover = "marcar";
                 return interaction.followUp({ content: "❗ Marque o jogador para remover da Guerra.", ephemeral: true });
 
             case "ver_removidos":
@@ -209,7 +208,94 @@ module.exports = async (data, context) => {
     if (isMessage) {
         const message = data;
 
-        // --------------- DESBAN MAKYO -----------------
+        // ---------- REMOÇÃO DE JOGADOR ----------
+        if (context.esperandoRemover === message.author.id) {
+            const step = context.etapaRemover;
+
+            if (step === "marcar") {
+                const mention = message.mentions.members.first();
+                if (!mention) return message.reply("❌ Marque um jogador válido.");
+
+                context.tempRemover = { id: mention.id, nome: mention.user.username };
+                context.etapaRemover = "motivo";
+                return message.reply("✏️ Digite o motivo da remoção.");
+            }
+
+            if (step === "motivo") {
+                const motivo = message.content.trim();
+                const { id, nome } = context.tempRemover;
+
+                context.filaGuerra = context.filaGuerra.filter(p => p.id !== id);
+                context.removidosGuerra = context.removidosGuerra || [];
+                context.removidosGuerra.push({ id, nome, motivo });
+
+                context.esperandoRemover = null;
+                context.etapaRemover = null;
+                context.tempRemover = null;
+
+                atualizarListaGuerra(context.client);
+                await context.salvarDados();
+
+                return message.reply(`✅ Jogador ${nome} removido da Guerra. Motivo: "${motivo}"`);
+            }
+        }
+
+        // ---------- BAN DE JOGADOR ----------
+        if (context.esperandoBan === message.author.id) {
+            const step = context.etapaBan;
+            const isBan = context.esperandoBan === message.author.id;
+
+            if (step === "marcar") {
+                const mention = message.mentions.members.first();
+                if (!mention) return message.reply("❌ Marque um jogador válido.");
+
+                context.tempBan = { id: mention.id, nome: mention.user.username };
+                context.etapaBan = "motivo";
+                return message.reply("✏️ Digite o motivo da ação.");
+            }
+
+            if (step === "motivo") {
+                const motivo = message.content.trim();
+                const { id, nome } = context.tempBan;
+
+                if (context.tipoBan === "discord") {
+                    try {
+                        const member = await message.guild.members.fetch(id).catch(() => null);
+                        if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
+                        if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
+
+                        await member.ban({ reason: motivo });
+
+                        const canalLog = message.guild.channels.cache.get(context.canalBan);
+                        if (canalLog) {
+                            const embed = new EmbedBuilder()
+                                .setTitle("🚫 Jogador banido")
+                                .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
+                                .setColor(0xED4245);
+                            canalLog.send({ embeds: [embed] });
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                        return message.reply("❌ Erro ao banir do servidor.");
+                    }
+                }
+
+                if (context.tipoBan === "makyo") {
+                    context.banidosMakyo.push({ id, nome, motivo });
+                }
+
+                context.esperandoBan = null;
+                context.etapaBan = null;
+                context.tempBan = null;
+                context.tipoBan = null;
+
+                await context.salvarDados();
+                return message.reply(`✅ Jogador ${nome} banido. Motivo: "${motivo}"`);
+            }
+        }
+
+        // ---------- DESBAN MAKYO ----------
         if (context.esperandoUnban === message.author.id) {
             const mention = message.mentions.members.first();
             if (!mention) return message.reply("❌ Marque um jogador válido.");
@@ -227,7 +313,7 @@ module.exports = async (data, context) => {
             return message.reply("✅ Jogador desbanido do Makyo.");
         }
 
-        // --------------- BLACKLIST ---------------
+        // ---------- BLACKLIST ----------
         if (context.esperandoBlacklist === message.author.id) {
             const content = message.content.trim();
 
@@ -251,78 +337,5 @@ module.exports = async (data, context) => {
                 return message.reply("✅ Jogador adicionado à blacklist.");
             }
         }
-
-        // --------------- BAN/REMOVE -----------------
-        if (context.esperandoBan === message.author.id || context.esperandoRemover === message.author.id) {
-            const step = context.etapaBan;
-            const isBan = context.esperandoBan === message.author.id;
-
-            // Etapa 1 - marcar jogador
-            if (step === "marcar" || step === "marcarRemover") {
-                const mention = message.mentions.members.first();
-                if (!mention) return message.reply("❌ Marque um jogador válido.");
-
-                context.tempBan = { id: mention.id, nome: mention.user.username };
-                context.etapaBan = "motivo";
-                return message.reply("✏️ Digite o motivo da ação.");
-            }
-
-            // Etapa 2 - motivo
-            if (step === "motivo") {
-                const motivo = message.content.trim();
-                const { id, nome } = context.tempBan;
-
-                if (isBan) {
-                    // 🔥 BAN DO DISCORD
-                    if (context.tipoBan === "discord") {
-                        try {
-                            const member = await message.guild.members.fetch(id).catch(() => null);
-                            if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
-                            if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
-
-                            await member.ban({ reason: motivo });
-
-                            // 📢 LOG NO CANAL (embed)
-                            const canalLog = message.guild.channels.cache.get(context.canalBan);
-                            if (canalLog) {
-                                const embed = new EmbedBuilder()
-                                    .setTitle("🚫 Jogador banido")
-                                    .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
-                                    .setColor(0xED4245);
-                                canalLog.send({ embeds: [embed] });
-                            }
-
-                        } catch (err) {
-                            console.error(err);
-                            return message.reply("❌ Erro ao banir do servidor.");
-                        }
-                    }
-
-                    // ✅ BAN MAKYO
-                    if (context.tipoBan === "makyo") {
-                        context.banidosMakyo.push({ id, nome, motivo });
-                    }
-
-                    context.esperandoBan = null;
-
-                } else {
-                    // 🔥 REMOÇÃO GUERRA
-                    context.filaGuerra = context.filaGuerra.filter(p => p.id !== id);
-                    context.removidosGuerra = context.removidosGuerra || [];
-                    context.removidosGuerra.push({ id, nome, motivo });
-                    context.esperandoRemover = null;
-
-                    atualizarListaGuerra(context.client);
-                }
-
-                await context.salvarDados();
-
-                context.etapaBan = null;
-                context.tempBan = null;
-                context.tipoBan = null;
-
-                return message.reply(`✅ Jogador Removido ${nome} Motivo: "${motivo}"`);
-            } // fecha if (step === "motivo")
-        } // fecha if (context.esperandoBan || context.esperandoRemover)
-    } // fecha if (isMessage)
-}; // fecha module.exports
+    }
+};

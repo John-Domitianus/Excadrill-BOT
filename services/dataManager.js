@@ -8,7 +8,8 @@ const DadosSchema = new mongoose.Schema({
     filaCFK: Array,
     filaCFK100: Array,
     filaGuerra: Array,
-    banidosMakyo: Array
+    banidosMakyo: Array,
+    listaNegra: Array
 });
 
 const Dados = mongoose.model("Dados", DadosSchema);
