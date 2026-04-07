@@ -24,6 +24,7 @@ module.exports = (client, context) => {
          await interaction.deferUpdate();
 }
         const nome = interaction.member.displayName;
+        const id = interaction.user.id;
         const hora = pegarHorario();
 
         const handled = await adminHandler(interaction, context);
@@ -32,8 +33,9 @@ module.exports = (client, context) => {
         const erro = (msg) => interaction.followUp({ embeds: [embedErro(msg)], ephemeral: true });
         const sucesso = (msg) => interaction.followUp({ embeds: [embedSucesso(msg)], ephemeral: true });
 
-        if (context.banidosMakyo.includes(nome)) return erro("Você está banido dos Makyo's.");
-
+        if (context.banidosMakyo.some(p => p.id === interaction.user.id)) {
+            return erro("Você está banido dos Makyo's.");
+        }
         switch (interaction.customId) {
             // ================= MAKYO =================
             case "abrir_makyo":
@@ -121,19 +123,19 @@ module.exports = (client, context) => {
                 });
 
             case "titular":
-                if (context.filaGuerra.find(p => p.nome === nome)) return erro("Já está na guerra.");
+                if (context.filaGuerra.find(p => p.id === id)) return erro("Já está na guerra.");
                 if (context.filaGuerra.length >= limiteTitular) return erro("Cheio.");
 
-                context.filaGuerra.push({ nome, hora, tipo: "titular" });
+                context.filaGuerra.push({ id, nome, hora, tipo: "titular" });
                 await context.salvarDados();
                 atualizarListaGuerra(client);
                 return sucesso("Entrou como titular.");
 
             case "reserva":
-                if (context.filaGuerra.find(p => p.nome === nome)) return erro("Já está na guerra.");
+                if (context.filaGuerra.find(p => p.id === id)) return erro("Já está na guerra.");
                 if (context.filaGuerra.length >= limiteTitular + limiteReserva) return erro("Cheio.");
 
-                context.filaGuerra.push({ nome, hora, tipo: "reserva" });
+                context.filaGuerra.push({ id, nome, hora, tipo: "reserva" });
                 await context.salvarDados();
                 atualizarListaGuerra(client);
                 return sucesso("Entrou como reserva.");

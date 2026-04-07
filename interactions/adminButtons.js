@@ -209,8 +209,8 @@ module.exports = async (data, context) => {
         const message = data;
 
         // ---------- REMOÇÃO DE JOGADOR ----------
-
         if (context.esperandoRemover === message.author.id) {
+
             const step = context.etapaRemover;
 
             // Etapa 1: marcar jogador
@@ -219,8 +219,8 @@ module.exports = async (data, context) => {
                 if (!mention) return message.reply("❌ Marque um jogador válido.");
 
                 // Pega apenas o nome do jogador, que é como está salvo na lista de guerra
-                const nome = mention.user.username;
-                context.tempRemover = { nome };
+                const id = mention.id;
+                context.tempRemover = { id };
                 context.etapaRemover = "motivo";
 
                 return message.reply("✏️ Digite o motivo da remoção.");
@@ -229,10 +229,10 @@ module.exports = async (data, context) => {
             // Etapa 2: motivo
             if (step === "motivo") {
                 const motivo = message.content.trim();
-                const { nome } = context.tempRemover;
+                const { id } = context.tempRemover;
 
                 // Remove apenas o jogador marcado da lista de guerra, independente de titular ou reserva
-                const jogadorIndex = context.filaGuerra.findIndex(p => p.nome === nome);
+                const jogadorIndex = context.filaGuerra.findIndex(p => p.id === id);
                 if (jogadorIndex === -1) {
                     // Reset das variáveis de controle mesmo se não encontrar
                     context.esperandoRemover = null;
@@ -255,7 +255,7 @@ module.exports = async (data, context) => {
                 atualizarListaGuerra(context.client);
                 await context.salvarDados();
 
-                return message.reply(`✅ Jogador ${nome} removido da Guerra. Motivo: "${motivo}"`);
+                return message.reply(`✅ Jogador ${removido.nome} removido da Guerra. Motivo: "${motivo}"`);
             }
         }
         // ---------- BAN DE JOGADOR ----------
