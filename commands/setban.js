@@ -1,18 +1,13 @@
 ﻿const { PermissionsBitField } = require("discord.js");
-const dataManager = require("../utils/datamanager"); // ajuste caminho
 
-module.exports = async (message) => {
+module.exports = async (message, context) => {
     const prefix = "!";
 
     if (!message.content.startsWith(prefix + "setban")) return;
 
-    if (message.deletable) {
-        await message.delete().catch(() => null);
-    }
+    if (message.deletable) await message.delete().catch(() => null);
 
-    if (!message.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) {
-        return;
-    }
+    if (!message.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) return;
 
     const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
 
@@ -20,13 +15,13 @@ module.exports = async (message) => {
         message.mentions.channels.first() ||
         await message.guild.channels.fetch(args[0]).catch(() => null);
 
-    if (!canal || !canal.isTextBased()) return;
+    if (!canal || typeof canal.isTextBased !== "function" || !canal.isTextBased()) return;
 
-    // 🔥 AGORA ALTERA A VARIÁVEL REAL
-    dataManager.setCanalBan(canal.id);
+    // 🔥 Salva o canal de ban via contexto
+    context.dataManager.setCanalBan(canal.id);
 
     try {
-        await dataManager.salvarDados();
+        await context.dataManager.salvarDados();
         console.log("✅ CANAL BAN SALVO:", canal.id);
     } catch (err) {
         console.error("❌ ERRO AO SALVAR:", err);

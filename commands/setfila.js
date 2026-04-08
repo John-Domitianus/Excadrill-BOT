@@ -1,8 +1,8 @@
 ﻿const { PermissionsBitField, EmbedBuilder } = require("discord.js");
-const dataManager = require("../services/dataManager"); // ajuste caminho conforme seu projeto
 
-module.exports = async (message) => {
+module.exports = async (message, context) => {
     const prefix = "!";
+
     if (!message.content.startsWith(prefix + "setfila")) return;
 
     if (message.deletable) await message.delete().catch(() => null);
@@ -17,10 +17,10 @@ module.exports = async (message) => {
         await message.guild.channels.fetch(args[0]).catch(() => null) ||
         message.channel;
 
-    if (!canal || !canal.isTextBased()) return;
+    if (!canal || typeof canal.isTextBased !== "function" || !canal.isTextBased()) return;
 
-    // 🔥 Salva o canal no dataManager
-    dataManager.setCanalFila(canal.id);
+    // 🔥 Salva o canal no dataManager via contexto
+    context.dataManager.setCanalFila(canal.id);
 
     // Cria a mensagem inicial para servir como âncora
     try {
@@ -32,8 +32,8 @@ module.exports = async (message) => {
                     .setDescription("A lista será atualizada automaticamente.")
             ]
         });
-        dataManager.setMensagemFila(mensagemLista.id); // salva o ID da mensagem
-        await dataManager.salvarDados();
+        context.dataManager.setMensagemFila(mensagemLista.id); // salva o ID da mensagem
+        await context.dataManager.salvarDados();
 
         console.log("✅ Canal e mensagem da lista inicial criados:", canal.id, mensagemLista.id);
     } catch (err) {

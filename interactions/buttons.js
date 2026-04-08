@@ -72,7 +72,7 @@ module.exports = (client, context) => {
                 context.filaCFK.push({ nome, hora });
                 context.controleDiario[nome] = hoje();
                 await context.salvarDados();
-                atualizarListaCompleta(client, context);
+                atualizarListaCompleta(client);
                 return sucesso("Entrou no Makyo Normal.");
 
             case "makyo_100":
@@ -83,7 +83,7 @@ module.exports = (client, context) => {
                 context.filaCFK100.push({ nome, hora });
                 context.controleDiario[nome] = hoje();
                 await context.salvarDados();
-                atualizarListaCompleta(client, context);
+                atualizarListaCompleta(client);
                 return sucesso("Entrou no Makyo Avançado.");
 
             case "ver_vagas":
@@ -93,7 +93,7 @@ module.exports = (client, context) => {
                 context.filaCFK = context.filaCFK.filter(p => p.nome !== nome);
                 context.filaCFK100 = context.filaCFK100.filter(p => p.nome !== nome);
                 await context.salvarDados();
-                atualizarListaCompleta(client, context);
+                atualizarListaCompleta(client);
                 return sucesso("Saiu da fila.");
 
             // ================= GUERRA =================
@@ -128,7 +128,7 @@ module.exports = (client, context) => {
 
                 context.filaGuerra.push({ id, nome, hora, tipo: "titular" });
                 await context.salvarDados();
-                atualizarListaGuerra(client, context);
+                atualizarListaGuerra(client);
                 return sucesso("Entrou como titular.");
 
             case "reserva":
@@ -137,7 +137,7 @@ module.exports = (client, context) => {
 
                 context.filaGuerra.push({ id, nome, hora, tipo: "reserva" });
                 await context.salvarDados();
-                atualizarListaGuerra(client, context);
+                atualizarListaGuerra(client);
                 return sucesso("Entrou como reserva.");
 
             case "ver_guerra":

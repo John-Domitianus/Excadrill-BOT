@@ -82,7 +82,7 @@ module.exports = (client) => {
 
         // lista de comandos
         const comandos = [
-            "../commands/setban",
+            //"../commands/setban",
             "../commands/setfila",
             "../commands/nick",
             "../commands/makyo",

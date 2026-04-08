@@ -201,10 +201,9 @@ module.exports = async (data, context) => {
                     content: "❗ Marque o jogador para banir do servidor.",
                     ephemeral: true
                 });
-            }
         }
+    }
 
-        
     // ================= MESSAGES =================
     if (isMessage) {
         const message = data;
