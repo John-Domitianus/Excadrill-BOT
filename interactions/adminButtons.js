@@ -279,23 +279,37 @@ module.exports = async (data, context) => {
                 if (context.tipoBan === "discord") {
                     try {
                         const member = await message.guild.members.fetch(id).catch(() => null);
-                        if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
-                        if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
+
+                        if (!member) {
+                            throw new Error("Membro não encontrado");
+                        }
+
+                        if (!member.bannable) {
+                            throw new Error("Sem permissão para banir (hierarquia)");
+                        }
 
                         await member.ban({ reason: motivo });
 
                         const canalLog = message.guild.channels.cache.get(context.canalBan);
-                        if (canalLog) {
+                        if (canalLog && canalLog.isTextBased()) {
                             const embed = new EmbedBuilder()
                                 .setTitle("🚫 Jogador banido")
                                 .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
                                 .setColor(0xED4245);
-                            canalLog.send({ embeds: [embed] });
+
+                            await canalLog.send({ embeds: [embed] });
                         }
 
                     } catch (err) {
-                        console.error(err);
-                        return message.reply("❌ Erro ao banir do servidor.");
+                        console.error("Erro ao banir:", err.message);
+
+                        // 🔴 RESET OBRIGATÓRIO (resolve spam)
+                        context.esperandoBan = null;
+                        context.etapaBan = null;
+                        context.tempBan = null;
+                        context.tipoBan = null;
+
+                        return message.reply(`❌ Falha ao banir: ${err.message}`);
                     }
                 }
 
