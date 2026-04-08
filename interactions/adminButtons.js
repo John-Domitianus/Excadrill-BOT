@@ -290,7 +290,14 @@ module.exports = async (data, context) => {
 
                         await member.ban({ reason: motivo });
 
-                        const canalLog = message.guild.channels.cache.get(context.canalBan);
+                        // 🔥 PEGA O CANAL CORRETO DO BAN PELO DATA MANAGER
+                        const dataManager = require("../utils/datamanager"); // ajuste o caminho
+                        const canalId = dataManager.getCanalBan();
+
+                        const canalLog = canalId
+                            ? await message.guild.channels.fetch(canalId).catch(() => null)
+                            : null;
+
                         if (canalLog && canalLog.isTextBased()) {
                             const embed = new EmbedBuilder()
                                 .setTitle("🚫 Jogador banido")
@@ -300,6 +307,18 @@ module.exports = async (data, context) => {
                             await canalLog.send({ embeds: [embed] });
                         }
 
+                    } catch (err) {
+                        console.error("Erro ao banir:", err.message);
+
+                        // 🔴 RESET OBRIGATÓRIO PARA EVITAR SPAM
+                        context.esperandoBan = null;
+                        context.etapaBan = null;
+                        context.tempBan = null;
+                        context.tipoBan = null;
+
+                        return message.reply(`❌ Falha ao banir: ${err.message}`);
+                        }
+                
                     } catch (err) {
                         console.error("Erro ao banir:", err.message);
 
