@@ -116,7 +116,7 @@ module.exports = (client, context) => {
                                 inline: false
                             }
                         )
-                        .setFooter({ text: "Sistema de Filas • MakyoBot" })
+                        .setFooter({ text: "" })
                 ],
                 ephemeral: true
             }); 
