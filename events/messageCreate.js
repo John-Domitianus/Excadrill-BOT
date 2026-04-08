@@ -1,8 +1,8 @@
 const { PermissionsBitField, EmbedBuilder } = require("discord.js");
 const { embedSucesso, embedErro } = require("../utils/embeds");
 const {
-    canalPyaku,
-    canalFilaCompleta,
+    //canalPyaku,
+    //canalFilaCompleta,
     dadosCarregados,
     salvarDados,
     controleDiario,
@@ -66,8 +66,8 @@ module.exports = (client) => {
             esperandoBlacklist,
             etapaBlacklist,
             tempBlacklist,
-            canalPyaku,
-            canalFilaCompleta,
+            //canalPyaku,
+            //canalFilaCompleta,
             filaCFK,
             filaCFK100,
             filaGuerra,
@@ -83,7 +83,7 @@ module.exports = (client) => {
         // lista de comandos
         const comandos = [
             //"../commands/setban",
-            "../commands/setfila",
+            //"../commands/setfila",
             "../commands/nick",
             "../commands/makyo",
             "../commands/guerra",

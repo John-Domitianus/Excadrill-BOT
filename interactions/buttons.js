@@ -87,8 +87,37 @@ module.exports = (client, context) => {
                 return sucesso("Entrou no Makyo Avançado.");
 
             case "ver_vagas":
-                return sucesso(`Makyo: ${context.filaCFK.length}/${limiteCFK}\nAvançado: ${context.filaCFK100.length}/${limiteCFK100}`);
+                const filaMakyo = context.filaCFK;
+                const filaAvancado = context.filaCFK100;
 
+                const limiteMakyo = limiteCFK;
+                const limiteAvancado = limiteCFK100;
+
+                return interaction.followUp({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xED4245)
+                            .setTitle("📋 Lista de Vagas")
+                            .addFields(
+                                {
+                                    name: "Makyo",
+                                    value: filaMakyo.map(p => p.nome).join("\n") || "Nenhum",
+                                    inline: true
+                                },
+                                {
+                                    name: "Avançado",
+                                    value: filaAvancado.map(p => p.nome).join("\n") || "Nenhum",
+                                    inline: true
+                                },
+                                {
+                                    name: "Vagas Restantes",
+                                    value: `Makyo: ${limiteMakyo - filaMakyo.length}\nAvançado: ${limiteAvancado - filaAvancado.length}`,
+                                    inline: false
+                                }
+                            )
+                    ],
+                    ephemeral: true
+                });
             case "sair_fila":
                 context.filaCFK = context.filaCFK.filter(p => p.nome !== nome);
                 context.filaCFK100 = context.filaCFK100.filter(p => p.nome !== nome);
