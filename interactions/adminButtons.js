@@ -285,13 +285,18 @@ module.exports = async (data, context) => {
                         await member.ban({ reason: motivo });
 
                         const canalLog = await message.guild.channels.fetch(context.canalBan).catch(() => null);
-                        if (canalLog) {
-                            const embed = new EmbedBuilder()
-                                .setTitle("🚫 Jogador banido")
-                                .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
-                                .setColor(0xED4245);
-                            canalLog.send({ embeds: [embed] });
+
+                        if (!canalLog || !canalLog.isTextBased()) {
+                            console.log("❌ Canal inválido ou não é de texto:", context.canalBan);
+                            return;
                         }
+
+                        const embed = new EmbedBuilder()
+                            .setTitle("🚫 Jogador banido")
+                            .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
+                            .setColor(0xED4245);
+
+                        await canalLog.send({ embeds: [embed] });
 
                     } catch (err) {
                         console.error(err);
