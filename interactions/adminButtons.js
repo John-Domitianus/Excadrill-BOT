@@ -284,7 +284,7 @@ module.exports = async (data, context) => {
 
                         await member.ban({ reason: motivo });
 
-                        const canalLog = message.guild.channels.cache.get(context.canalBan);
+                        const canalLog = await message.guild.channels.fetch(context.canalBan).catch(() => null);
                         if (canalLog) {
                             const embed = new EmbedBuilder()
                                 .setTitle("🚫 Jogador banido")

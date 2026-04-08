@@ -14,6 +14,7 @@ module.exports = async (message, context) => {
     const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
     const canal = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
     if (!canal) return message.reply("❌ Marque um canal válido ou passe o ID do canal.");
+    console.log("Canal salvo:", context.canalBan);
 
     // Salva no dataManager
     context.canalBan = canal.id;
