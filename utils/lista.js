@@ -1,5 +1,5 @@
 ﻿const { EmbedBuilder } = require("discord.js");
-const dataManager = require("../utils/datamanager"); // ajuste caminho
+const dataManager = require("../services/dataManager"); // ajuste caminho
 
 function atualizarListaCompleta(client, filaCFK, filaCFK100) {
     const canalFila = dataManager.getCanalFila();

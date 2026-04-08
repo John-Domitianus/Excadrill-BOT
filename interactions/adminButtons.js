@@ -201,9 +201,10 @@ module.exports = async (data, context) => {
                     content: "❗ Marque o jogador para banir do servidor.",
                     ephemeral: true
                 });
+            }
         }
-    }
 
+        
     // ================= MESSAGES =================
     if (isMessage) {
         const message = data;
@@ -317,19 +318,8 @@ module.exports = async (data, context) => {
                         context.tipoBan = null;
 
                         return message.reply(`❌ Falha ao banir: ${err.message}`);
-                        }
-                
-                    } catch (err) {
-                        console.error("Erro ao banir:", err.message);
-
-                        // 🔴 RESET OBRIGATÓRIO (resolve spam)
-                        context.esperandoBan = null;
-                        context.etapaBan = null;
-                        context.tempBan = null;
-                        context.tipoBan = null;
-
-                        return message.reply(`❌ Falha ao banir: ${err.message}`);
                     }
+                
                 }
 
                 if (context.tipoBan === "makyo") {

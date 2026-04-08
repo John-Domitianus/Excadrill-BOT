@@ -1,5 +1,5 @@
 ﻿const { PermissionsBitField, EmbedBuilder } = require("discord.js");
-const dataManager = require("../utils/datamanager"); // ajuste caminho conforme seu projeto
+const dataManager = require("../services/dataManager"); // ajuste caminho conforme seu projeto
 
 module.exports = async (message) => {
     const prefix = "!";
