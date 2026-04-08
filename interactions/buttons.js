@@ -115,7 +115,7 @@ module.exports = (client, context) => {
                                 },
                                 {
                                     name: "Vagas Restantes",
-                                    value: `Makyo = ${limiteMakyo - filaMakyo.length} vagas\nAvançado = ${limiteAvancado - filaAvancado.length} vagas`,
+                                    value: `Normal = ${limiteMakyo - filaMakyo.length} vagas\nAvançado = ${limiteAvancado - filaAvancado.length} vagas`,
                                     inline: false
                                 }
                             )
