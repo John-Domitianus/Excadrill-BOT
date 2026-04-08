@@ -105,10 +105,6 @@ module.exports = (client, context) => {
                                     inline: true
                                 },
                                 {
-                                    name: "●",
-                                    inline: true
-                                },
-                                {
                                     name: "Avançado",
                                     value: filaAvancado.map(p => p.nome).join("\n") || "Nenhum",
                                     inline: true
