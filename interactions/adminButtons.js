@@ -49,12 +49,12 @@ module.exports = async (data, context) => {
                     embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
                     components: [
                         new ActionRowBuilder().addComponents(
-                            new ButtonBuilder().setCustomId("reset_cfk").setLabel("Reset Makyo").setStyle(ButtonStyle.Danger),
-                            new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Reset Avançado").setStyle(ButtonStyle.Danger)
+                            new ButtonBuilder().setCustomId("reset_cfk").setLabel("Resetar Makyo Normal").setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder().setCustomId("reset_cfk100").setLabel("Resetar Makyo Avançado").setStyle(ButtonStyle.Danger)
                         ),
                         new ActionRowBuilder().addComponents(
-                            new ButtonBuilder().setCustomId("banir_membro").setLabel("Banir").setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder().setCustomId("desbanir_membro").setLabel("Desbanir").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId("banir_membro").setLabel("Banir Membro do Makyo").setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId("desbanir_membro").setLabel("Desbanir Membro do Makyo").setStyle(ButtonStyle.Secondary),
                             new ButtonBuilder().setCustomId("ver_banidos").setLabel("Ver Banidos").setStyle(ButtonStyle.Primary)
                         ),
                         new ActionRowBuilder().addComponents(
