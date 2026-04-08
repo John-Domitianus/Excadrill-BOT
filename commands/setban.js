@@ -3,31 +3,46 @@
 module.exports = async (message, context) => {
     const prefix = "!";
 
-    // Verifica comando
     if (!message.content.startsWith(prefix + "setban")) return;
 
-    // Permissão
-    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-        return message.reply("❌ Você precisa ser administrador para usar este comando.");
+    // Apaga comando
+    if (message.deletable) {
+        await message.delete().catch(() => null);
     }
 
-    // Pega argumento (menção ou ID)
+    // Permissão
+    if (!message.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) {
+        return;
+    }
+
     const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
+
     const canal =
         message.mentions.channels.first() ||
-        message.guild.channels.cache.get(args[0]);
+        await message.guild.channels.fetch(args[0]).catch(() => null);
 
-    if (!canal) {
-        return message.reply("❌ Marque um canal válido ou informe o ID.");
+    if (!canal || !canal.isTextBased()) {
+        return;
     }
 
-    // Salva no contexto correto
-    context.canalBan = canal.id;
+    // 🔥 GARANTE estrutura persistente
+    context.config = context.config || {};
+    context.config[message.guild.id] = context.config[message.guild.id] || {};
 
-    // Salva no banco corretamente
-    await context.salvarDados();
+    context.config[message.guild.id].canalBan = canal.id;
 
-    console.log("✅ Canal de ban salvo:", context.canalBan);
+    try {
+        await context.salvarDados();
 
-    return message.reply(`✅ Canal de ban definido para ${canal}`);
+        console.log("✅CANAL BAN SALVO NO MONGO:");
+        console.log(JSON.stringify(context.config, null, 2));
+
+    } catch (err) {
+        console.error("❌ ERRO AO SALVAR CANAL BAN NO MONGO:", err);
+        return;
+    }
+
+    // Feedback curto (opcional)
+    const msg = await message.channel.send(`✅ Canal de ban definido para ${canal}`);
+    setTimeout(() => msg.delete().catch(() => null), 4000);
 };
