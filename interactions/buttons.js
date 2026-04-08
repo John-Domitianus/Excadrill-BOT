@@ -116,7 +116,7 @@ module.exports = (client, context) => {
                                 inline: false
                             }
                         )
-                        .setFooter({ text: "" })
+                        .setFooter({ text: "Sistema de Filas • Pyaku" })
                 ],
                 ephemeral: true
             }); 
