@@ -100,8 +100,12 @@ module.exports = (client, context) => {
                             .setTitle("📋 Lista de Vagas")
                             .addFields(
                                 {
-                                    name: "Makyo",
+                                    name: "Normal",
                                     value: filaMakyo.map(p => p.nome).join("\n") || "Nenhum",
+                                    inline: true
+                                },
+                                {
+                                    name: "●",
                                     inline: true
                                 },
                                 {
@@ -111,7 +115,7 @@ module.exports = (client, context) => {
                                 },
                                 {
                                     name: "Vagas Restantes",
-                                    value: `Makyo: ${limiteMakyo - filaMakyo.length}\nAvançado: ${limiteAvancado - filaAvancado.length}`,
+                                    value: `Makyo = ${limiteMakyo - filaMakyo.length} vagas\nAvançado = ${limiteAvancado - filaAvancado.length} vagas`,
                                     inline: false
                                 }
                             )
