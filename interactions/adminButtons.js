@@ -272,60 +272,30 @@ module.exports = async (data, context) => {
                 return message.reply("✏️ Digite o motivo da ação.");
             }
 
-                if (step === "motivo") {
-                    const motivo = message.content.trim();
-                    const { id, nome } = context.tempBan;
+            if (step === "motivo") {
+                const motivo = message.content.trim();
+                const { id, nome } = context.tempBan;
 
-                    let erroBan = false;
+                if (context.tipoBan === "discord") {
+                    try {
+                        const member = await message.guild.members.fetch(id).catch(() => null);
+                        if (!member) return message.reply("❌ Não encontrei esse usuário no servidor.");
+                        if (!member.bannable) return message.reply("❌ Não posso banir esse usuário (hierarquia).");
 
-                    if (context.tipoBan === "discord") {
-                        try {
-                            const member = await message.guild.members.fetch(id).catch(() => null);
+                        await member.ban({ reason: motivo });
 
-                            if (!member) {
-                                erroBan = true;
-                                await message.reply("❌ Não encontrei esse usuário no servidor.");
-                            } else if (!member.bannable) {
-                                erroBan = true;
-                                await message.reply("❌ Não posso banir esse usuário (hierarquia).");
-                            } else {
-                                await member.ban({ reason: motivo });
-
-                                const canalLog = await message.guild.channels.fetch(context.canalBan).catch(() => null);
-
-                                if (canalLog && canalLog.isTextBased()) {
-                                    const embed = new EmbedBuilder()
-                                        .setTitle("🚫 Jogador banido")
-                                        .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
-                                        .setColor(0xED4245);
-
-                                    await canalLog.send({ embeds: [embed] });
-                                } else {
-                                    console.log("❌ Canal inválido:", context.canalBan);
-                                }
-                            }
-
-                        } catch (err) {
-                            console.error(err);
-                            erroBan = true;
-                            await message.reply("❌ Erro ao banir do servidor.");
+                        const canalLog = message.guild.channels.cache.get(context.canalBan);
+                        if (canalLog) {
+                            const embed = new EmbedBuilder()
+                                .setTitle("🚫 Jogador banido")
+                                .setDescription(`O Feiticeiro **${nome}** foi morto no jogo do abate.\n📄 Motivo: ${motivo}`)
+                                .setColor(0xED4245);
+                            canalLog.send({ embeds: [embed] });
                         }
-                    }
 
-                    if (context.tipoBan === "makyo") {
-                        context.banidosMakyo.push({ id, nome, motivo });
-                    }
-
-                    // 🔥 RESET SEMPRE (independente de erro)
-                    context.esperandoBan = null;
-                    context.etapaBan = null;
-                    context.tempBan = null;
-                    context.tipoBan = null;
-
-                    await context.salvarDados();
-
-                    if (!erroBan) {
-                        return message.reply(`✅ Feiticeiro Jujutsu ${nome} morto no jogo do abate. Motivo: "${motivo}"`);
+                    } catch (err) {
+                        console.error(err);
+                        return message.reply("❌ Erro ao banir do servidor.");
                     }
                 }
 
