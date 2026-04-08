@@ -1,8 +1,12 @@
 ﻿const { EmbedBuilder } = require("discord.js");
+const dataManager = require("../utils/datamanager"); // ajuste caminho
 
-function atualizarListaCompleta(client, canalFilaCompleta, filaCFK, filaCFK100, mensagemLista) {
-    if (!canalFilaCompleta) return;
-    const canal = client.channels.cache.get(canalFilaCompleta);
+function atualizarListaCompleta(client, filaCFK, filaCFK100) {
+    const canalFila = dataManager.getCanalFila();
+    const mensagemId = dataManager.getMensagemFila();
+    if (!canalFila || !mensagemId) return;
+
+    const canal = client.channels.cache.get(canalFila);
     if (!canal) return;
 
     const listaCFK = filaCFK.length === 0
@@ -21,14 +25,12 @@ function atualizarListaCompleta(client, canalFilaCompleta, filaCFK, filaCFK100, 
             { name: "🔥 Makyo Avançado", value: listaCFK100 }
         );
 
-    if (mensagemLista) {
-        mensagemLista.edit({ embeds: [embed] }).catch(() => { mensagemLista = null; });
-    } else {
-        canal.send({ embeds: [embed] }).then(msg => mensagemLista = msg);
-    }
-
-    return mensagemLista;
+    // Edita a mensagem âncora
+    canal.messages.fetch(mensagemId)
+        .then(msg => msg.edit({ embeds: [embed] }))
+        .catch(() => console.log("⚠️ Mensagem da lista não encontrada."));
 }
+module.exports = { atualizarListaCompleta };
 
 function atualizarListaGuerra(client, canalFilaCompleta, filaGuerra, mensagemGuerra) {
     if (!canalFilaCompleta) return;
