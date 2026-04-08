@@ -25,24 +25,20 @@ module.exports = async (message, context) => {
         return;
     }
 
-    // 🔥 GARANTE estrutura persistente
-    context.config = context.config || {};
-    context.config[message.guild.id] = context.config[message.guild.id] || {};
-
-    context.config[message.guild.id].canalBan = canal.id;
+    // 🔥 AQUI ESTÁ A CORREÇÃO REAL
+    context.canalBan = canal.id;
 
     try {
         await context.salvarDados();
 
-        console.log("✅CANAL BAN SALVO NO MONGO:");
-        console.log(JSON.stringify(context.config, null, 2));
+        console.log("✅ CANAL BAN SALVO NO MONGO:", context.canalBan);
 
     } catch (err) {
         console.error("❌ ERRO AO SALVAR CANAL BAN NO MONGO:", err);
         return;
     }
 
-    // Feedback curto (opcional)
+    // Feedback curto
     const msg = await message.channel.send(`✅ Canal de ban definido para ${canal}`);
     setTimeout(() => msg.delete().catch(() => null), 4000);
 };
