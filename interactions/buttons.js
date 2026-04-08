@@ -93,32 +93,34 @@ module.exports = (client, context) => {
                 const limiteMakyo = limiteCFK;
                 const limiteAvancado = limiteCFK100;
 
-                return interaction.followUp({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor(0xED4245)
-                            .setTitle("📋 Lista de Vagas")
-                            .addFields(
-                                {
-                                    name: "Normal",
-                                    value: filaMakyo.map(p => p.nome).join("\n") || "Nenhum",
-                                    inline: true
-                                },
-                                {
-                                    name: "Avançado",
-                                    value: filaAvancado.map(p => p.nome).join("\n") || "Nenhum",
-                                    inline: true
-                                },
-                                {
-                                    name: "Vagas Restantes",
-                                    value: `Normal = ${limiteMakyo - filaMakyo.length} vagas\nAvançado = ${limiteAvancado - filaAvancado.length} vagas`,
-                                    inline: false
-                                }
-                            )
-                    ],
-                    ephemeral: true
-                });
-            case "sair_fila":
+            return interaction.followUp({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xED4245)
+                        .setTitle("📋 Lista de Vagas")
+                        .setDescription("Confira abaixo as filas e vagas restantes:")
+                        .addFields(
+                            {
+                                name: "📌 Normal",
+                                value: filaMakyo.length > 0 ? filaMakyo.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
+                                inline: true
+                            },
+                            {
+                                name: "🎯 Avançado",
+                                value: filaAvancado.length > 0 ? filaAvancado.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
+                                inline: true
+                            },
+                            {
+                                name: "💡 Vagas Restantes",
+                                value: `• Normal = ${limiteMakyo - filaMakyo.length} vagas\n• Avançado = ${limiteAvancado - filaAvancado.length} vagas`,
+                                inline: false
+                            }
+                        )
+                        .setFooter({ text: "Sistema de Filas • MakyoBot" })
+                ],
+                ephemeral: true
+            }); 
+           case "sair_fila":
                 context.filaCFK = context.filaCFK.filter(p => p.nome !== nome);
                 context.filaCFK100 = context.filaCFK100.filter(p => p.nome !== nome);
                 await context.salvarDados();
