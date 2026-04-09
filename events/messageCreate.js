@@ -35,7 +35,9 @@ function pegarHorario() {
 
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
+        require("./commands/nick")(message);
         if (message.author.bot) return;
+        
 
         // ======= MENÇÃO AO BOT =======
         const botMention = `<@${client.user.id}>`;

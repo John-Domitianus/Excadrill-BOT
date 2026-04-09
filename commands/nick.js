@@ -1,77 +1,80 @@
 ﻿const { embedSucesso, embedErro } = require("../utils/embeds");
 
-module.exports = async (message, context) => {
+module.exports = async (message) => {
     const TAGS = ["ᖇᏀᑎㅹ", "ᖇᏀ²ㅹ"];
 
-    // Iniciar comando
-    if (message.content === "!nick") {
-        context.esperandoNick = message.author.id;
-        context.nickTemp = {};
-        return message.reply("✏️ Escreva o seu nickname desejado.");
-    }
+    if (message.content !== "!nick") return;
 
-    // Etapa 1: receber nickname
-    if (context.esperandoNick === message.author.id) {
-        const novoNick = message.content.trim();
-        const maxLength = 32 - (TAGS[0].length + 1);
+    const userId = message.author.id;
 
-        if (novoNick.length < 2 || novoNick.length > maxLength)
-            return message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
+    await message.reply("> ✏️ Escreva o seu nickname desejado.");
 
-        if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg"))
-            return message.reply("❌ Nickname inválido.");
+    const filter = (m) => m.author.id === userId;
 
-        // Salva nickname temporário
-        context.nickTemp[message.author.id] = novoNick;
+    const collector = message.channel.createMessageCollector({
+        filter,
+        max: 2,
+        time: 60000
+    });
 
-        // Muda estado para escolha da tag
-        context.esperandoNick = null;
-        context.escolhendoTag = message.author.id;
+    let etapa = 0;
+    let nick = "";
 
-        return message.reply(
-            `🏷️ Escolha a TAG:\n` +
-            `1️⃣ ${TAGS[0]}\n` +
-            `2️⃣ ${TAGS[1]}\n\n` +
-            `Digite **1** ou **2**`
-        );
-    }
+    collector.on("collect", async (msg) => {
+        // 🧩 ETAPA 1 - nickname
+        if (etapa === 0) {
+            const novoNick = msg.content.trim();
+            const maxLength = 32 - (TAGS[0].length + 1);
 
-    // Etapa 2: escolher tag
-    if (context.escolhendoTag === message.author.id) {
-        const escolha = message.content.trim();
-        const nickBase = context.nickTemp[message.author.id];
+            if (novoNick.length < 2 || novoNick.length > maxLength)
+                return msg.reply(`> ❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
 
-        if (!["1", "2"].includes(escolha))
-            return message.reply("❌ Escolha inválida. Digite **1** ou **2**.");
+            if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg"))
+                return msg.reply("> ❌ Nickname inválido.");
 
-        const TAG = TAGS[Number(escolha) - 1];
+            nick = novoNick;
+            etapa = 1;
 
-        try {
-            let nickLimpo = nickBase;
-
-            if (nickLimpo.startsWith(TAG)) {
-                nickLimpo = nickLimpo.replace(TAG, "").trim();
-            }
-
-            const nickFinal = `${TAG} ${nickLimpo}`;
-
-            await message.member.setNickname(nickFinal);
-
-            // Limpa estados
-            context.escolhendoTag = null;
-            delete context.nickTemp[message.author.id];
-
-            return message.reply({
-                embeds: [embedSucesso(`Seu nickname foi alterado para **${nickFinal}**.`)]
-            });
-
-        } catch (err) {
-            context.escolhendoTag = null;
-            delete context.nickTemp[message.author.id];
-
-            return message.reply({
-                embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")]
-            });
+            return msg.reply(
+                `> 🏷️ Escolha a TAG:\n>\n` +
+                `> 1️⃣ ${TAGS[0]}\n` +
+                `> 2️⃣ ${TAGS[1]}\n>\n` +
+                `> Digite **1** ou **2**`
+            );
         }
-    }
+
+        // 🧩 ETAPA 2 - escolha da tag
+        if (etapa === 1) {
+            const escolha = msg.content.trim();
+
+            if (!["1", "2"].includes(escolha))
+                return msg.reply("> ❌ Escolha inválida. Digite **1** ou **2**.");
+
+            const TAG = TAGS[Number(escolha) - 1];
+            const nickFinal = `${TAG} ${nick}`;
+
+            try {
+                await message.member.setNickname(nickFinal);
+
+                collector.stop();
+
+                return msg.reply({
+                    embeds: [embedSucesso(`> ✅ Seu nickname foi alterado para:\n> **${nickFinal}**`)]
+                });
+
+            } catch (err) {
+                collector.stop();
+
+                return msg.reply({
+                    embeds: [embedErro("> ❌ Não consegui alterar seu nickname.")]
+                });
+            }
+        }
+    });
+
+    collector.on("end", (collected, reason) => {
+        if (reason === "time") {
+            message.reply("> ⏰ Tempo esgotado. Use `!nick` novamente.");
+        }
+    });
 };
