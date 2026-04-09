@@ -38,10 +38,10 @@ module.exports = (client) => {
         if (message.author.bot) return;
 
         // 🔥 PROCESSA FLUXO SEMPRE
-       await require("./commands/nick")(message, context);
+        await require("../commands/nick")(message, context);
 
     // 👇 depois filtra comandos
-       if (!message.content.startsWith("!")) return;
+        if (!message.content.startsWith("!")) return;
 
         // ======= MENÇÃO AO BOT =======
         const botMention = `<@${client.user.id}>`;
