@@ -3,17 +3,17 @@
 module.exports = async (message, context) => {
     const { esperandoNick, escolhendoTag } = context;
 
-    // Opcões de tag com suporte pra adicionar mais no futuro
+    // Opcões de tag com suporte prw adicionar mais no futuro
     const TAGS = {
         "1": "ᖇᏀᑎㅹ",
         "2": "ᖇᏀ²ㅹ"
     };
 
-    // Iniciar comando perguntando sobre a tag
+    // Iniciar comando pergutando sobre a tag
     if (message.content === "!nick") {
         context.escolhendoTag = message.author.id;
 
-        message.reply(
+        return message.reply(
             "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀ²ㅹ\n\nDigite apenas o número."
         );
         return true;
@@ -24,15 +24,15 @@ module.exports = async (message, context) => {
         const escolha = message.content.trim();
 
         if (!TAGS[escolha]) {
-            message.reply("❌ Opção inválida. Digite 1 ou 2.");
-            return true;
+            return message.reply("❌ Opção inválida. Digite 1 ou 2.");
+            return true;    
         }
 
         context.tagEscolhida = TAGS[escolha];
         context.escolhendoTag = null;
         context.esperandoNick = message.author.id;
 
-        message.reply("✏️ Agora escreva o seu nickname desejado.");
+        return message.reply("✏️ Agora escreva o seu nickname desejado.");
         return true;
     }
 
@@ -43,15 +43,13 @@ module.exports = async (message, context) => {
 
         const maxLength = 32 - (TAG.length + 1);
 
-        if (novoNick.length < 2 || novoNick.length > maxLength) {
-            message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
-            return true;
-        }
+        if (novoNick.length < 2 || novoNick.length > maxLength)
+            return message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
+                return true;
 
-        if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg")) {
-            message.reply("❌ Nickname inválido.");
+        if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg"))
+            return message.reply("❌ Nickname inválido.");
             return true;
-        }
 
         try {
             let nickLimpo = novoNick;
@@ -67,21 +65,19 @@ module.exports = async (message, context) => {
             context.esperandoNick = null;
             context.tagEscolhida = null;
 
-            message.reply({
+            return message.reply({
                 embeds: [embedSucesso(`Seu nickname foi alterado para **${nickFinal}**.`)]
+                return true;
             });
-            return true;
 
         } catch (err) {
             context.esperandoNick = null;
             context.tagEscolhida = null;
 
-            message.reply({
+            return message.reply({
                 embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")]
+                return true;
             });
-            return true;
         }
     }
-
-    return false;
 };
