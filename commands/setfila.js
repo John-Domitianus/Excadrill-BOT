@@ -1,46 +1,23 @@
-﻿const { PermissionsBitField, EmbedBuilder } = require("discord.js");
+﻿const { PermissionsBitField } = require("discord.js");
+const { canalFilaCompleta, salvarDados } = require("../services/dataManager"); // ajuste conforme sua pasta
 
 module.exports = async (message, context) => {
-    const prefix = "!";
-
+    const prefix = "!"; // Prefixo padrão
     if (!message.content.startsWith(prefix + "setfila")) return;
 
-    if (message.deletable) await message.delete().catch(() => null);
-
-    if (!message.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) return;
-
-    const args = message.content.slice(prefix.length + 7).trim().split(/ +/);
-
-    // Pega o canal por menção ou ID; se nada, usa o canal atual
-    const canal =
-        message.mentions.channels.first() ||
-        await message.guild.channels.fetch(args[0]).catch(() => null) ||
-        message.channel;
-
-    if (!canal || typeof canal.isTextBased !== "function" || !canal.isTextBased()) return;
-
-    // 🔥 Salva o canal no dataManager via contexto
-    context.dataManager.setCanalFila(canal.id);
-
-    // Cria a mensagem inicial para servir como âncora
-    try {
-        const mensagemLista = await canal.send({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0x5865F2)
-                    .setTitle("📋 Lista Oficial - Filas Makyo")
-                    .setDescription("A lista será atualizada automaticamente.")
-            ]
-        });
-        context.dataManager.setMensagemFila(mensagemLista.id); // salva o ID da mensagem
-        await context.dataManager.salvarDados();
-
-        console.log("✅ Canal e mensagem da lista inicial criados:", canal.id, mensagemLista.id);
-    } catch (err) {
-        console.error("❌ ERRO AO CRIAR MENSAGEM INICIAL:", err);
-        return;
+    // Verifica permissão
+    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        return message.reply("❌ Você precisa ser administrador.");
     }
 
-    const msg = await message.channel.send(`✅ Canal da lista Makyo definido para ${canal}`);
-    setTimeout(() => msg.delete().catch(() => null), 4000);
+    // Pega o canal marcado ou ID
+    const args = message.content.slice(prefix.length + 16).trim().split(/ +/); // 16 = length de "setfilacompleta"
+    const canal = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
+    if (!canal) return message.reply("❌ Marque um canal válido ou passe o ID do canal.");
+
+    // Salva no DataManager
+    context.canalFilaCompleta = canal.id;
+    await salvarDados();
+
+    return message.reply(`✅ Canal da lista definido: ${canal}`);
 };

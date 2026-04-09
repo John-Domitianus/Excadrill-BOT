@@ -43,25 +43,6 @@ module.exports = (client) => {
 
         const content = message.content.trim();
 
-        // ===== MENÇÃO AO BOT =====
-        const botMention = `<@${client.user.id}>`;
-        const botNicknameMention = `<@!${client.user.id}>`;
-
-        if (content === botMention || content === botNicknameMention) {
-            const embed = new EmbedBuilder()
-                .setTitle("🤖 Pyaku BOT")
-                .setDescription(
-                    "Comandos disponíveis:\n\n" +
-                    "• `!nick` — Alterar nick\n" +
-                    "• `!makyo` — Sistema Makyo\n" +
-                    "• `!guerra` — Sistema Guerra\n" +
-                    "• `!admin` — Administração"
-                )
-                .setColor(0x00FFFF);
-
-            return message.reply({ embeds: [embed] });
-        }
-
         // ===== CONTEXTO =====
         const context = {
             fluxoNick,

@@ -1,33 +1,23 @@
 ﻿const { PermissionsBitField } = require("discord.js");
+const { canalBan, salvarDados } = require("../services/dataManager");
 
 module.exports = async (message, context) => {
-    const prefix = "!";
-
+    const prefix = "!"; // prefixo padrão
     if (!message.content.startsWith(prefix + "setban")) return;
 
-    if (message.deletable) await message.delete().catch(() => null);
-
-    if (!message.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) return;
-
-    const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
-
-    const canal =
-        message.mentions.channels.first() ||
-        await message.guild.channels.fetch(args[0]).catch(() => null);
-
-    if (!canal || typeof canal.isTextBased !== "function" || !canal.isTextBased()) return;
-
-    // 🔥 Salva o canal de ban via contexto
-    context.dataManager.setCanalBan(canal.id);
-
-    try {
-        await context.dataManager.salvarDados();
-        console.log("✅ CANAL BAN SALVO:", canal.id);
-    } catch (err) {
-        console.error("❌ ERRO AO SALVAR:", err);
-        return;
+    // Verifica permissão
+    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        return message.reply("❌ Você precisa ser administrador para usar este comando.");
     }
 
-    const msg = await message.channel.send(`✅ Canal de ban definido para ${canal}`);
-    setTimeout(() => msg.delete().catch(() => null), 4000);
+    // Pega o canal marcado ou ID
+    const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
+    const canal = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
+    if (!canal) return message.reply("❌ Marque um canal válido ou passe o ID do canal.");
+
+    // Salva no dataManager
+    context.canalBan = canal.id;
+    await salvarDados();
+
+    return message.reply(`✅ Canal de ban definido para ${canal}`);
 };

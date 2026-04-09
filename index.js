@@ -78,7 +78,8 @@ carregarPasta("interactions", (mod) => {
         await dataManager.carregarDadosMongo();
         context.dadosCarregados = true;
 
-        console.log("\n🚀 BOT ONLINE COM TODOS OS MÓDULOS CARREGADOS\n");
+        console.log("\n🚀 MÓDULOS CARREGADOS COM SUCESSO\n");
+        console.log("\n🚀 BOT DA GUILDA ONLINE!\n");
 
     } catch (err) {
         console.error("❌ Erro ao iniciar:", err);

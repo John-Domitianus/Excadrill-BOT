@@ -38,7 +38,6 @@ async function carregarDadosMongo() {
         banidosMakyo.push(...(dados.banidosMakyo || []));
         listaNegra.push(...(dados.listaNegra || []));
     }
-    console.log("Blacklist:", listaNegra); //Para verificar carregamento de DataBase
     dadosCarregados = true;
 }
 
