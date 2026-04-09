@@ -1,7 +1,6 @@
 ﻿const { embedSucesso, embedErro } = require("../utils/embeds");
 
 module.exports = async (message, context) => {
-    console.log("[INIT] Mensagem recebida:", message.content, "| Autor:", message.author.id);
 
     // Garantir estrutura de estado
     if (!context.fluxoNick) context.fluxoNick = {};
@@ -16,7 +15,6 @@ module.exports = async (message, context) => {
 
     // Iniciar comando pergutando sobre a tag
     if (message.content === "!nick") {
-        console.log("[ETAPA] Iniciando escolha de TAG");
 
         context.fluxoNick[message.author.id] = {
             escolhendoTag: true
@@ -30,19 +28,15 @@ module.exports = async (message, context) => {
 
     // Escolher TAG Aqui
     if (userState.escolhendoTag) {
-        console.log("[ETAPA] Usuário escolhendo TAG");
 
         const escolha = message.content.trim();
-        console.log("[DADO] Escolha recebida:", escolha);
 
         if (!TAGS[escolha]) {
-            console.log("[ERRO] Opção de TAG inválida");
 
             return message.reply("❌ Opção inválida. Digite 1 ou 2.");
             return true;
         }
 
-        console.log("[SUCESSO] TAG escolhida:", TAGS[escolha]);
 
         context.fluxoNick[message.author.id] = {
             esperandoNick: true,
@@ -55,26 +49,20 @@ module.exports = async (message, context) => {
 
     // Definir nickname
     if (userState.esperandoNick) {
-        console.log("[ETAPA] Definindo nickname");
 
         const novoNick = message.content.trim();
-        console.log("[DADO] Nick recebido:", novoNick);
 
         const TAG = userState.tagEscolhida || "ᖇᏀᑎㅹ";
-        console.log("[DADO] TAG usada:", TAG);
 
         const maxLength = 32 - (TAG.length + 1);
-        console.log("[DADO] Tamanho máximo permitido:", maxLength);
 
         if (novoNick.length < 2 || novoNick.length > maxLength) {
-            console.log("[ERRO] Nick fora do tamanho permitido");
 
             return message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
             return true;
         }
 
         if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg")) {
-            console.log("[ERRO] Nick contém conteúdo proibido");
 
             return message.reply("❌ Nickname inválido.");
             return true;
@@ -84,12 +72,10 @@ module.exports = async (message, context) => {
             let nickLimpo = novoNick;
 
             if (nickLimpo.startsWith(TAG)) {
-                console.log("[INFO] Removendo TAG duplicada do nick");
                 nickLimpo = nickLimpo.replace(TAG, "").trim();
             }
 
             const nickFinal = `${TAG} ${nickLimpo}`;
-            console.log("[AÇÃO] Aplicando nickname:", nickFinal);
 
             await message.member.setNickname(nickFinal);
 
@@ -103,7 +89,6 @@ module.exports = async (message, context) => {
             return true;
 
         } catch (err) {
-            console.log("[ERRO] Falha ao alterar nickname:", err);
 
             delete context.fluxoNick[message.author.id];
 

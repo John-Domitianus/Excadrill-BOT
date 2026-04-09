@@ -1,9 +1,13 @@
-const { PermissionsBitField, EmbedBuilder } = require("discord.js");
-const { embedSucesso, embedErro } = require("../utils/embeds");
+const { EmbedBuilder } = require("discord.js");
+const path = require("path");
+
+// comandos (carregados uma vez só)
+const nickCmd = require("../commands/nick");
+const makyoCmd = require("../commands/makyo");
+const guerraCmd = require("../commands/guerra");
+const adminCmd = require("../commands/admin");
+
 const {
-    //canalPyaku,
-    //canalFilaCompleta,
-    dadosCarregados,
     salvarDados,
     controleDiario,
     filaCFK,
@@ -11,9 +15,10 @@ const {
     filaGuerra,
     banidosMakyo
 } = require("../services/dataManager");
+
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 
-// VARIAVEIS DE CONTROLE
+// ===== CONTROLE =====
 let esperandoNick = null;
 let esperandoBan = null;
 let esperandoUnban = null;
@@ -21,8 +26,6 @@ let esperandoBlacklist = null;
 let etapaBlacklist = null;
 let tempBlacklist = null;
 let fluxoNick = {};
-
-
 
 function hoje() {
     const d = new Date();
@@ -37,30 +40,29 @@ function pegarHorario() {
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
-        
 
-        // ======= MENÇÃO AO BOT =======
+        const content = message.content.trim();
+
+        // ===== MENÇÃO AO BOT =====
         const botMention = `<@${client.user.id}>`;
-        const botNicknameMention = `<@!${client.user.id}>`; // em alguns casos aparece assim
-        if (
-            (message.content === botMention || message.content === botNicknameMention)
-        ) {
+        const botNicknameMention = `<@!${client.user.id}>`;
+
+        if (content === botMention || content === botNicknameMention) {
             const embed = new EmbedBuilder()
-                .setTitle("🤖 Olá! Eu sou o Pyaku, o BOT personalizado da Escola Jujutsu Ragnarok!")
+                .setTitle("🤖 Pyaku BOT")
                 .setDescription(
-                    "Aqui estão os comandos que você pode usar:\n" +
-                    "• `!nick` — Alterar seu nick\n" +
-                    "• `!makyo` — Comandos relacionados ao Makyo\n" +
-                    "• `!guerra` — Comandos relacionados à Guerra\n" +
-                    "• `!admin` — Painel de administração (somente para admins)\n\n"
-                 )
-                .setColor(0x00FFFF)
-                .setFooter({ text: "Desenvolvido por: Sushi!" });
+                    "Comandos disponíveis:\n\n" +
+                    "• `!nick` — Alterar nick\n" +
+                    "• `!makyo` — Sistema Makyo\n" +
+                    "• `!guerra` — Sistema Guerra\n" +
+                    "• `!admin` — Administração"
+                )
+                .setColor(0x00FFFF);
 
             return message.reply({ embeds: [embed] });
         }
 
-        // contexto compartilhado para todos os comandos
+        // ===== CONTEXTO =====
         const context = {
             fluxoNick,
             esperandoNick,
@@ -69,8 +71,6 @@ module.exports = (client) => {
             esperandoBlacklist,
             etapaBlacklist,
             tempBlacklist,
-            //canalPyaku,
-            //canalFilaCompleta,
             filaCFK,
             filaCFK100,
             filaGuerra,
@@ -83,34 +83,39 @@ module.exports = (client) => {
             atualizarListaGuerra
         };
 
-        // lista de comandos
-        const comandos = [
-            //"../commands/setban",
-            //"../commands/setfila",
-            "../commands/nick",
-            "../commands/makyo",
-            "../commands/guerra",
-            "../commands/admin"
-        ];
+        const lower = content.toLowerCase();
 
-        const path = require("path");
-
-        for (const cmdPath of comandos) {
-            try {
-                const comando = require(path.join(__dirname, cmdPath));
-
-                if (typeof comando === "function") {
-                    await comando(message, context);
-                } else if (comando && comando.execute) {
-                    await comando.execute(message, context);
-                }
-
-            } catch (err) {
-                console.warn(`⚠️ Erro ao carregar comando: ${cmdPath}`, err);
+        try {
+            // ===== COMANDOS =====
+            if (lower.startsWith("!nick")) {
+                await nickCmd(message, context);
             }
+
+            else if (lower.startsWith("!makyo")) {
+                await makyoCmd(message, context);
+            }
+
+            else if (lower.startsWith("!guerra")) {
+                await guerraCmd(message, context);
+            }
+
+            else if (lower.startsWith("!admin")) {
+                await adminCmd(message, context);
+            }
+
+            // ===== FLUXOS (mensagens sem comando) =====
+            else if (
+                fluxoNick[message.author.id] ||
+                esperandoNick === message.author.id
+            ) {
+                await nickCmd(message, context);
+            }
+
+        } catch (err) {
+            console.error("❌ Erro ao executar comando:", err);
         }
-        
-        // atualizar variáveis externas caso tenham sido alteradas nos comandos
+
+        // ===== ATUALIZA CONTROLE =====
         esperandoNick = context.esperandoNick;
         esperandoBan = context.esperandoBan;
         esperandoUnban = context.esperandoUnban;
