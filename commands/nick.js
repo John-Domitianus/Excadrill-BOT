@@ -3,7 +3,10 @@
 module.exports = async (message, context) => {
     console.log("[INIT] Mensagem recebida:", message.content, "| Autor:", message.author.id);
 
-    const { esperandoNick, escolhendoTag } = context;
+    // Garantir estrutura de estado
+    if (!context.fluxoNick) context.fluxoNick = {};
+
+    const userState = context.fluxoNick[message.author.id] || {};
 
     // Opcões de tag com suporte prw adicionar mais no futuro
     const TAGS = {
@@ -15,7 +18,9 @@ module.exports = async (message, context) => {
     if (message.content === "!nick") {
         console.log("[ETAPA] Iniciando escolha de TAG");
 
-        context.escolhendoTag = message.author.id;
+        context.fluxoNick[message.author.id] = {
+            escolhendoTag: true
+        };
 
         return message.reply(
             "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀ²ㅹ\n\nDigite apenas o número."
@@ -24,7 +29,7 @@ module.exports = async (message, context) => {
     }
 
     // Escolher TAG Aqui
-    if (context.escolhendoTag === message.author.id) {
+    if (userState.escolhendoTag) {
         console.log("[ETAPA] Usuário escolhendo TAG");
 
         const escolha = message.content.trim();
@@ -37,24 +42,25 @@ module.exports = async (message, context) => {
             return true;
         }
 
-        context.tagEscolhida = TAGS[escolha];
-        console.log("[SUCESSO] TAG escolhida:", context.tagEscolhida);
+        console.log("[SUCESSO] TAG escolhida:", TAGS[escolha]);
 
-        context.escolhendoTag = null;
-        context.esperandoNick = message.author.id;
+        context.fluxoNick[message.author.id] = {
+            esperandoNick: true,
+            tagEscolhida: TAGS[escolha]
+        };
 
         return message.reply("✏️ Agora escreva o seu nickname desejado.");
         return true;
     }
 
     // Definir nickname
-    if (context.esperandoNick === message.author.id) {
+    if (userState.esperandoNick) {
         console.log("[ETAPA] Definindo nickname");
 
         const novoNick = message.content.trim();
         console.log("[DADO] Nick recebido:", novoNick);
 
-        const TAG = context.tagEscolhida || "ᖇᏀᑎㅹ";
+        const TAG = userState.tagEscolhida || "ᖇᏀᑎㅹ";
         console.log("[DADO] TAG usada:", TAG);
 
         const maxLength = 32 - (TAG.length + 1);
@@ -87,8 +93,7 @@ module.exports = async (message, context) => {
 
             await message.member.setNickname(nickFinal);
 
-            context.esperandoNick = null;
-            context.tagEscolhida = null;
+            delete context.fluxoNick[message.author.id];
 
             console.log("[SUCESSO] Nickname alterado com sucesso");
 
@@ -100,8 +105,7 @@ module.exports = async (message, context) => {
         } catch (err) {
             console.log("[ERRO] Falha ao alterar nickname:", err);
 
-            context.esperandoNick = null;
-            context.tagEscolhida = null;
+            delete context.fluxoNick[message.author.id];
 
             return message.reply({
                 embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")]
