@@ -2,76 +2,84 @@
 
 module.exports = async (message, context) => {
     const TAGS = ["ᖇᏀᑎㅹ", "ᖇᏀ²ㅹ"];
-
-    // Garante estrutura
-    if (!context.esperandoNick) context.esperandoNick = {};
-    if (!context.escolhendoTag) context.escolhendoTag = {};
-    if (!context.nickTemp) context.nickTemp = {};
-
     const userId = message.author.id;
+
+    if (!context.nickFlow) context.nickFlow = {};
 
     // Iniciar comando
     if (message.content === "!nick") {
-        context.esperandoNick[userId] = true;
-        return message.reply("✏️ Escreva o seu nickname desejado. (Observação: Não escreva com tag).");
+        if (context.nickFlow[userId]) {
+            return message.reply("> ⚠️ Você já está alterando seu nickname.");
+        }
+
+        context.nickFlow[userId] = { etapa: "nick" };
+
+        return message.reply(
+            "> ✏️ Escreva o seu nickname desejado.\n" +
+            "> ⚠️ Não inclua TAG no nome."
+        );
     }
 
-    // Etapa 1: receber nickname
-    if (context.esperandoNick[userId]) {
+    if (!context.nickFlow[userId]) return;
+
+    const flow = context.nickFlow[userId];
+
+    // ETAPA 1 - nickname
+    if (flow.etapa === "nick") {
         const novoNick = message.content.trim();
         const maxLength = 32 - (TAGS[0].length + 1);
 
         if (novoNick.length < 2 || novoNick.length > maxLength)
-            return message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
+            return message.reply(`> ❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
 
         if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg"))
-            return message.reply("❌ Nickname inválido.");
+            return message.reply("> ❌ Nickname inválido.");
 
-        // Salva nickname
-        context.nickTemp[userId] = novoNick;
+        flow.nick = novoNick;
+        flow.etapa = "tag";
 
-        // Troca estado
-        delete context.esperandoNick[userId];
-        context.escolhendoTag[userId] = true;
-
-        return message.reply(
-            `🏷️ Escolha a TAG:\n` +
-            `1️⃣ ${TAGS[0]}\n` +
-            `2️⃣ ${TAGS[1]}\n\n` +
-            `Digite **1** ou **2**`
+        const msg = await message.reply(
+            `> 🏷️ Escolha a TAG reagindo abaixo:\n>\n` +
+            `> 1️⃣ ${TAGS[0]}\n` +
+            `> 2️⃣ ${TAGS[1]}`
         );
-    }
 
-    // Etapa 2: escolher tag
-    if (context.escolhendoTag[userId]) {
-        const escolha = message.content.trim();
-        const nickBase = context.nickTemp[userId];
+        await msg.react("1️⃣");
+        await msg.react("2️⃣");
 
-        if (!["1", "2"].includes(escolha))
-            return message.reply("❌ Escolha inválida. Digite **1** ou **2**.");
+        const filter = (reaction, user) =>
+            ["1️⃣", "2️⃣"].includes(reaction.emoji.name) && user.id === userId;
 
-        const TAG = TAGS[Number(escolha) - 1];
+        msg.awaitReactions({ filter, max: 1, time: 30000, errors: ["time"] })
+            .then(async (collected) => {
+                msg.reactions.removeAll().catch(() => {});
 
-        try {
-            const nickFinal = `${TAG} ${nickBase}`;
+                const reaction = collected.first();
+                const escolha = reaction.emoji.name === "1️⃣" ? 0 : 1;
 
-            await message.member.setNickname(nickFinal);
+                const TAG = TAGS[escolha];
+                const nickFinal = `${TAG} ${flow.nick}`;
 
-            // Limpeza
-            delete context.escolhendoTag[userId];
-            delete context.nickTemp[userId];
+                try {
+                    await message.member.setNickname(nickFinal);
 
-            return message.reply({
-                embeds: [embedSucesso(`Seu nickname foi alterado para **${nickFinal}**.`)]
+                    delete context.nickFlow[userId];
+
+                    return message.reply({
+                        embeds: [embedSucesso(`> ✅ Seu nickname foi alterado para:\n> **${nickFinal}**`)]
+                    });
+
+                } catch (err) {
+                    delete context.nickFlow[userId];
+
+                    return message.reply({
+                        embeds: [embedErro("> ❌ Não consegui alterar seu nickname.\n> Verifique minhas permissões.")]
+                    });
+                }
+            })
+            .catch(() => {
+                delete context.nickFlow[userId];
+                return message.reply("> ⏰ Tempo esgotado. Use `!nick` novamente.");
             });
-
-        } catch (err) {
-            delete context.escolhendoTag[userId];
-            delete context.nickTemp[userId];
-
-            return message.reply({
-                embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")]
-            });
-        }
     }
 };
