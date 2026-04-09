@@ -20,6 +20,7 @@ let esperandoUnban = null;
 let esperandoBlacklist = null;
 let etapaBlacklist = null;
 let tempBlacklist = null;
+let fluxoNick = {};
 
 
 
@@ -61,6 +62,7 @@ module.exports = (client) => {
 
         // contexto compartilhado para todos os comandos
         const context = {
+            fluxoNick,
             esperandoNick,
             esperandoBan,
             esperandoUnban,
@@ -115,5 +117,6 @@ module.exports = (client) => {
         esperandoBlacklist = context.esperandoBlacklist;
         etapaBlacklist = context.etapaBlacklist;
         tempBlacklist = context.tempBlacklist;
+        fluxoNick = context.fluxoNick;
     });
 };
