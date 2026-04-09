@@ -7,7 +7,7 @@ module.exports = async (message, context) => {
     if (message.content === "!nick") {
         context.esperandoNick = message.author.id;
         context.nickTemp = {};
-        return message.reply("✏️ Escreva o seu nickname desejado.");
+        return message.reply("✏️ Escreva o seu nickname desejado. (Observação: Não escreva com tag).");
     }
 
     // Etapa 1: receber nickname
