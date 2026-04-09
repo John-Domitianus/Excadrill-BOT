@@ -35,7 +35,6 @@ function pegarHorario() {
 
 module.exports = (client) => {
     client.on("messageCreate", async (message) => {
-        require("./commands/nick")(message);
         if (message.author.bot) return;
         
 
@@ -92,19 +91,23 @@ module.exports = (client) => {
             "../commands/admin"
         ];
 
+        const path = require("path");
+
         for (const cmdPath of comandos) {
             try {
-                const comando = require(cmdPath);
-                if (comando && typeof comando === "function") {
+                const comando = require(path.join(__dirname, cmdPath));
+
+                if (typeof comando === "function") {
                     await comando(message, context);
                 } else if (comando && comando.execute) {
                     await comando.execute(message, context);
                 }
+
             } catch (err) {
-                console.warn(`⚠️ Comando não encontrado ou com erro: ${cmdPath}`);
+                console.warn(`⚠️ Erro ao carregar comando: ${cmdPath}`, err);
             }
         }
-
+        
         // atualizar variáveis externas caso tenham sido alteradas nos comandos
         esperandoNick = context.esperandoNick;
         esperandoBan = context.esperandoBan;

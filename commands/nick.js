@@ -14,7 +14,7 @@ module.exports = async (message, context) => {
         context.escolhendoTag = message.author.id;
 
         return message.reply(
-            "🏷️ Escolha sua tag:\n\n1️⃣ ᎪᎶᎢ⛧\n2️⃣ VIP✦\n\nDigite apenas o número."
+            "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀ²ㅹ\n\nDigite apenas o número."
         );
     }
 
@@ -36,7 +36,7 @@ module.exports = async (message, context) => {
     // Definir nickname
     if (context.esperandoNick === message.author.id) {
         const novoNick = message.content.trim();
-        const TAG = context.tagEscolhida || "ᎪᎶᎢ⛧";
+        const TAG = context.tagEscolhida || "ᖇᏀᑎㅹ";
 
         const maxLength = 32 - (TAG.length + 1);
 
