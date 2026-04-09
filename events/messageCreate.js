@@ -37,12 +37,6 @@ module.exports = (client) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
-        // 🔥 PROCESSA FLUXO SEMPRE
-        await require("../commands/nick")(message, context);
-
-    // 👇 depois filtra comandos
-        if (!message.content.startsWith("!")) return;
-
         // ======= MENÇÃO AO BOT =======
         const botMention = `<@${client.user.id}>`;
         const botNicknameMention = `<@!${client.user.id}>`; // em alguns casos aparece assim
