@@ -26,7 +26,6 @@ module.exports = async (message, context) => {
 
     // ETAPA 1 - nickname
     if (flow.etapa === "nick") {
-        console.log("Entrou na etapa NICK");
         const novoNick = message.content.trim();
         const maxLength = 32 - (TAGS[0].length + 1);
 
@@ -40,7 +39,6 @@ module.exports = async (message, context) => {
         flow.etapa = "tag";
 
         const msg = await message.reply(
-            console.log("Entrou na etapa TAG");
             `> 🏷️ Escolha a TAG reagindo abaixo:\n>\n` +
             `> 1️⃣ ${TAGS[0]}\n` +
             `> 2️⃣ ${TAGS[1]}`
