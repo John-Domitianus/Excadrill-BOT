@@ -49,9 +49,16 @@ module.exports = (client, context) => {
         console.log("CANAL CONFIG:", context.getCanalFilaCompleta && context.getCanalFilaCompleta());
         console.log("CANAL MSG:", message.channel.id);
 
-        // 🔒 BLOQUEIO COM AVISO
+        // 🔒 BLOQUEIO APENAS PARA COMANDOS DO BOT
+        const comandoNome = message.content.startsWith("!")
+            ? message.content.slice(1).split(" ")[0].toLowerCase()
+            : null;
+
         if (
-            !message.content.toLowerCase().startsWith("!setfila") &&
+            comandoNome &&
+            context.comandos &&
+            context.comandos[comandoNome] && // 🔥 só comandos existentes
+            comandoNome !== "setfila" &&
             context.getCanalFilaCompleta &&
             context.getCanalFilaCompleta() &&
             message.channel.id !== context.getCanalFilaCompleta()
@@ -65,7 +72,7 @@ module.exports = (client, context) => {
                 .setFooter({ text: "Sistema de Filas" });
 
             return message.reply({ embeds: [embed] });
-        }
+        }        
         
         const content = message.content.trim();
 
