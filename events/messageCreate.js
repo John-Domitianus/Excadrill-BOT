@@ -51,6 +51,7 @@ module.exports = (client, context) => {
 
         // 🔒 BLOQUEIO CORRIGIDO (usa context real)
         if (
+            !message.content.toLowerCase().startsWith("!setfila") &&
             context.getCanalFilaCompleta &&
             context.getCanalFilaCompleta() &&
             message.channel.id !== context.getCanalFilaCompleta() &&
