@@ -55,20 +55,27 @@ async function salvarDados() {
     }, { upsert: true });
 }
 
-
-
 function resetDiario() {
     controleDiario = {};
 }
+
 function setCanalBan(id) {
     canalBan = id;
 }
 
 function getCanalBan() {
     return canalBan;
-}   
+}
 
+// ✅ ADICIONADO (setter)
+function setCanalFilaCompleta(id) {
+    canalFilaCompleta = id;
+}
 
+// ✅ ADICIONADO (getter)
+function getCanalFilaCompleta() {
+    return canalFilaCompleta;
+}
 
 module.exports = {
     canalPyaku,
@@ -76,6 +83,11 @@ module.exports = {
     canalBan,
     setCanalBan,
     getCanalBan,
+
+    // ✅ ADICIONADO
+    setCanalFilaCompleta,
+    getCanalFilaCompleta,
+
     controleDiario,
     filaCFK,
     filaCFK100,

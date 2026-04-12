@@ -3,7 +3,7 @@ const { embedErro, embedSucesso } = require("../utils/embeds");
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 const { limiteCFK, limiteCFK100, limiteTitular, limiteReserva } = require("../config/constants");
 const adminHandler = require("./adminButtons");
-
+const { salvarDados } = require("../services/dataManager");
 
 function hoje() {
     const d = new Date();
@@ -18,11 +18,43 @@ function pegarHorario() {
 module.exports = (client, context) => {
     client.on("interactionCreate", async (interaction) => {
         if (!context.dadosCarregados) return;
-        if (!interaction.isButton()) return;
 
-       if (!interaction.deferred && !interaction.replied) {
-         await interaction.deferUpdate();
-}
+        // ✅ aceita botão e select menu
+        if (!interaction.isButton() && !interaction.isChannelSelectMenu()) return;
+
+        // ================= SELECT MENU =================
+        if (interaction.isChannelSelectMenu()) {
+            if (interaction.customId === "select_fila") {
+                const canalId = interaction.values[0];
+
+                await interaction.deferReply({ ephemeral: true });
+
+                try {
+                    context.setCanalFilaCompleta(canalId);
+
+                    await salvarDados();
+
+                    await interaction.editReply({
+                        content: `✅ | Canal da fila definido para <#${canalId}>`
+                    });
+
+                } catch (err) {
+                    console.error("Erro ao salvar canal:", err);
+
+                    await interaction.editReply({
+                        content: "❌ Erro ao salvar o canal."
+                    });
+                }
+            }
+
+            return; // 🚨 impede cair nos botões
+        }
+
+        // ================= BOTÕES =================
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferUpdate();
+        }
+
         const nome = interaction.member.displayName;
         const id = interaction.user.id;
         const hora = pegarHorario();
@@ -36,7 +68,9 @@ module.exports = (client, context) => {
         if (context.banidosMakyo.some(p => p.id === interaction.user.id)) {
             return erro("Você está banido dos Makyo's.");
         }
+
         switch (interaction.customId) {
+
             // ================= MAKYO =================
             case "abrir_makyo":
                 return interaction.editReply({
@@ -93,34 +127,35 @@ module.exports = (client, context) => {
                 const limiteMakyo = limiteCFK;
                 const limiteAvancado = limiteCFK100;
 
-            return interaction.followUp({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xED4245)
-                        .setTitle("📋 Lista de Vagas")
-                        .setDescription("Confira abaixo as filas e vagas restantes:")
-                        .addFields(
-                            {
-                                name: "📌 Normal",
-                                value: filaMakyo.length > 0 ? filaMakyo.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
-                                inline: true
-                            },
-                            {
-                                name: "🎯 Avançado",
-                                value: filaAvancado.length > 0 ? filaAvancado.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
-                                inline: true
-                            },
-                            {
-                                name: "💡 Vagas Restantes",
-                                value: `• Normal = ${limiteMakyo - filaMakyo.length} vagas\n• Avançado = ${limiteAvancado - filaAvancado.length} vagas`,
-                                inline: false
-                            }
-                        )
-                        .setFooter({ text: "Sistema de Filas • Pyaku" })
-                ],
-                ephemeral: true
-            }); 
-           case "sair_fila":
+                return interaction.followUp({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xED4245)
+                            .setTitle("📋 Lista de Vagas")
+                            .setDescription("Confira abaixo as filas e vagas restantes:")
+                            .addFields(
+                                {
+                                    name: "📌 Normal",
+                                    value: filaMakyo.length > 0 ? filaMakyo.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
+                                    inline: true
+                                },
+                                {
+                                    name: "🎯 Avançado",
+                                    value: filaAvancado.length > 0 ? filaAvancado.map(p => `• ${p.nome}`).join("\n") : "Nenhum",
+                                    inline: true
+                                },
+                                {
+                                    name: "💡 Vagas Restantes",
+                                    value: `• Normal = ${limiteMakyo - filaMakyo.length} vagas\n• Avançado = ${limiteAvancado - filaAvancado.length} vagas`,
+                                    inline: false
+                                }
+                            )
+                            .setFooter({ text: "Sistema de Filas • Pyaku" })
+                    ],
+                    ephemeral: true
+                });
+
+            case "sair_fila":
                 context.filaCFK = context.filaCFK.filter(p => p.nome !== nome);
                 context.filaCFK100 = context.filaCFK100.filter(p => p.nome !== nome);
                 await context.salvarDados();
@@ -187,8 +222,9 @@ module.exports = (client, context) => {
                     ],
                     ephemeral: true
                 });
-            }
+        }
     });
+
     client.on("messageCreate", async (message) => {
         if (!context.dadosCarregados) return;
         if (message.author.bot) return;

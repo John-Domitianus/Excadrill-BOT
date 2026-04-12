@@ -6,6 +6,7 @@ const nickCmd = require("../commands/nick");
 const makyoCmd = require("../commands/makyo");
 const guerraCmd = require("../commands/guerra");
 const adminCmd = require("../commands/admin");
+const setfilaCmd = require("../commands/setfila"); // ✅ ADICIONADO
 
 const {
     salvarDados,
@@ -17,6 +18,9 @@ const {
 } = require("../services/dataManager");
 
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
+
+// 🔒 ADICIONADO (acesso ao canal salvo)
+const data = require("../services/dataManager");
 
 // ===== CONTROLE =====
 let esperandoNick = null;
@@ -37,10 +41,18 @@ function pegarHorario() {
     return `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
 }
 
-module.exports = (client) => {
+module.exports = (client, context) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
+        // 🔒 BLOQUEIO POR CANAL (ADICIONADO)
+        if (
+            data.getCanalFilaCompleta() &&
+            message.channel.id !== data.getCanalFilaCompleta() &&
+            !message.member.permissions.has("Administrator")
+        ) {
+            return;
+        }
         const content = message.content.trim();
 
         // ===== CONTEXTO =====
@@ -82,6 +94,10 @@ module.exports = (client) => {
 
             else if (lower.startsWith("!admin")) {
                 await adminCmd(message, context);
+            }
+
+            else if (lower.startsWith("!setfila")) { // ✅ ADICIONADO
+                await setfilaCmd(message, context);
             }
 
             // ===== FLUXOS (mensagens sem comando) =====

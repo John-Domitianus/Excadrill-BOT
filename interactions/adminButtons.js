@@ -44,9 +44,14 @@ module.exports = async (data, context) => {
         if (interaction.customId.startsWith("jogador_")) return false;
 
         switch (interaction.customId) {
+
             case "admin_makyo":
                 return interaction.editReply({
-                    embeds: [new EmbedBuilder().setTitle("🛠️ Admin Makyo")],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🛠️ Admin Makyo")
+                            .setDescription("Gerencie filas e banimentos do sistema Makyo.")
+                    ],
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("reset_cfk").setLabel("Resetar Makyo Normal").setStyle(ButtonStyle.Danger),
@@ -65,7 +70,11 @@ module.exports = async (data, context) => {
 
             case "admin_guerra":
                 return interaction.editReply({
-                    embeds: [new EmbedBuilder().setTitle("🛠️ Admin Guerra")],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🛠️ Admin Guerra")
+                            .setDescription("Gerencie titulares, reservas e jogadores da guerra.")
+                    ],
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("limpar_titular").setLabel("Limpar Titulares").setStyle(ButtonStyle.Danger),
@@ -81,7 +90,11 @@ module.exports = async (data, context) => {
 
             case "admin_moderacao":
                 return interaction.editReply({
-                    embeds: [new EmbedBuilder().setTitle("🛡️ Moderação")],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🛡️ Moderação")
+                            .setDescription("Gerencie banimentos e blacklist do servidor.")
+                    ],
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("banir_jogador").setLabel("Banir jogador").setStyle(ButtonStyle.Danger),
@@ -96,7 +109,17 @@ module.exports = async (data, context) => {
 
             case "voltar_admin":
                 return interaction.editReply({
-                    embeds: [new EmbedBuilder().setTitle("🛠️ Painel Admin")],
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xFAA61A)
+                            .setTitle("🛠️ Painel Admin")
+                            .setDescription("Controle completo dos sistemas Makyo, Guerra e Moderação.")
+                            .addFields(
+                                { name: "Makyo", value: "Resetar filas e gerenciar banimentos.", inline: true },
+                                { name: "Guerra", value: "Gerenciar participantes da guerra.", inline: true },
+                                { name: "Moderação", value: "Banimentos e blacklist.", inline: true }
+                            )
+                    ],
                     components: [
                         new ActionRowBuilder().addComponents(
                             new ButtonBuilder().setCustomId("admin_makyo").setLabel("Makyo").setStyle(ButtonStyle.Primary),

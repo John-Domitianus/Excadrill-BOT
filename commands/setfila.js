@@ -1,23 +1,39 @@
-﻿const { PermissionsBitField } = require("discord.js");
-const { canalFilaCompleta, salvarDados } = require("../services/dataManager"); // ajuste conforme sua pasta
+﻿const {
+    PermissionsBitField,
+    ActionRowBuilder,
+    ChannelSelectMenuBuilder,
+    ChannelType,
+    EmbedBuilder
+} = require("discord.js");
 
-module.exports = async (message, context) => {
-    const prefix = "!"; // Prefixo padrão
-    if (!message.content.startsWith(prefix + "setfila")) return;
+module.exports = async (message) => {
+    // Verifica comando
+    if (!message.content.startsWith("!setfila")) return;
 
-    // Verifica permissão
+    // Verifica se é admin
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-        return message.reply("❌ Você precisa ser administrador.");
+        return message.channel.send("❌ | Você precisa ser administrador.");
     }
 
-    // Pega o canal marcado ou ID
-    const args = message.content.slice(prefix.length + 16).trim().split(/ +/); // 16 = length de "setfilacompleta"
-    const canal = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
-    if (!canal) return message.reply("❌ Marque um canal válido ou passe o ID do canal.");
+    // Cria embed
+    const embed = new EmbedBuilder()
+        .setColor(0x5865F2)
+        .setTitle("📌 Configurar canal da fila")
+        .setDescription("Selecione abaixo o canal que será usado como **fila**.");
 
-    // Salva no DataManager
-    context.canalFilaCompleta = canal.id;
-    await salvarDados();
+    // Cria menu de seleção
+    const menu = new ChannelSelectMenuBuilder()
+        .setCustomId("select_fila")
+        .setPlaceholder("Selecione um canal...")
+        .setMinValues(1)
+        .setMaxValues(1)
+        .addChannelTypes(ChannelType.GuildText);
 
-    return message.reply(`✅ Canal da lista definido: ${canal}`);
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    // Envia mensagem
+    await message.channel.send({
+        embeds: [embed],
+        components: [row]
+    });
 };
