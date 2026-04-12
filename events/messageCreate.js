@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 const path = require("path");
 
 // comandos (carregados uma vez só)
@@ -19,7 +19,7 @@ const {
 
 const { atualizarListaCompleta, atualizarListaGuerra } = require("../utils/lista");
 
-// 🔒 ADICIONADO (acesso ao canal salvo)
+// 🔒 ADICIONADO (mantido, mas não usado mais no bloqueio)
 const data = require("../services/dataManager");
 
 // ===== CONTROLE =====
@@ -45,18 +45,20 @@ module.exports = (client, context) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
-        // 🔒 BLOQUEIO POR CANAL (ADICIONADO)
+        // 🔒 BLOQUEIO CORRIGIDO (usa context real)
         if (
-            data.getCanalFilaCompleta() &&
-            message.channel.id !== data.getCanalFilaCompleta() &&
-            !message.member.permissions.has("Administrator")
+            context.getCanalFilaCompleta &&
+            context.getCanalFilaCompleta() &&
+            message.channel.id !== context.getCanalFilaCompleta() &&
+            !message.member.permissions.has(PermissionsBitField.Flags.Administrator)
         ) {
             return;
         }
+
         const content = message.content.trim();
 
-        // ===== CONTEXTO =====
-        const context = {
+        // ===== CONTEXTO LOCAL (NÃO sobrescreve o original) =====
+        const localContext = {
             fluxoNick,
             esperandoNick,
             esperandoBan,
@@ -81,31 +83,31 @@ module.exports = (client, context) => {
         try {
             // ===== COMANDOS =====
             if (lower.startsWith("!nick")) {
-                await nickCmd(message, context);
+                await nickCmd(message, localContext);
             }
 
             else if (lower.startsWith("!makyo")) {
-                await makyoCmd(message, context);
+                await makyoCmd(message, localContext);
             }
 
             else if (lower.startsWith("!guerra")) {
-                await guerraCmd(message, context);
+                await guerraCmd(message, localContext);
             }
 
             else if (lower.startsWith("!admin")) {
-                await adminCmd(message, context);
+                await adminCmd(message, localContext);
             }
 
-            else if (lower.startsWith("!setfila")) { // ✅ ADICIONADO
-                await setfilaCmd(message, context);
+            else if (lower.startsWith("!setfila")) {
+                await setfilaCmd(message, localContext);
             }
 
-            // ===== FLUXOS (mensagens sem comando) =====
+            // ===== FLUXOS =====
             else if (
                 fluxoNick[message.author.id] ||
                 esperandoNick === message.author.id
             ) {
-                await nickCmd(message, context);
+                await nickCmd(message, localContext);
             }
 
         } catch (err) {
@@ -113,12 +115,12 @@ module.exports = (client, context) => {
         }
 
         // ===== ATUALIZA CONTROLE =====
-        esperandoNick = context.esperandoNick;
-        esperandoBan = context.esperandoBan;
-        esperandoUnban = context.esperandoUnban;
-        esperandoBlacklist = context.esperandoBlacklist;
-        etapaBlacklist = context.etapaBlacklist;
-        tempBlacklist = context.tempBlacklist;
-        fluxoNick = context.fluxoNick;
+        esperandoNick = localContext.esperandoNick;
+        esperandoBan = localContext.esperandoBan;
+        esperandoUnban = localContext.esperandoUnban;
+        esperandoBlacklist = localContext.esperandoBlacklist;
+        etapaBlacklist = localContext.etapaBlacklist;
+        tempBlacklist = localContext.tempBlacklist;
+        fluxoNick = localContext.fluxoNick;
     });
 };
