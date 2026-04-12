@@ -49,17 +49,24 @@ module.exports = (client, context) => {
         console.log("CANAL CONFIG:", context.getCanalFilaCompleta && context.getCanalFilaCompleta());
         console.log("CANAL MSG:", message.channel.id);
 
-        // 🔒 BLOQUEIO CORRIGIDO (usa context real)
+        // 🔒 BLOQUEIO COM AVISO
         if (
             !message.content.toLowerCase().startsWith("!setfila") &&
             context.getCanalFilaCompleta &&
             context.getCanalFilaCompleta() &&
-            message.channel.id !== context.getCanalFilaCompleta() &&
-            !message.member.permissions.has(PermissionsBitField.Flags.Administrator)
+            message.channel.id !== context.getCanalFilaCompleta()
         ) {
-            return;
-        }
+            const canalCorreto = context.getCanalFilaCompleta();
 
+            const embed = new EmbedBuilder()
+                .setColor(0xED4245)
+                .setTitle("❌ Canal incorreto")
+                .setDescription(`Use os comandos apenas no canal <#${canalCorreto}>.`)
+                .setFooter({ text: "Sistema de Filas" });
+
+            return message.reply({ embeds: [embed] });
+        }
+        
         const content = message.content.trim();
 
         // ===== CONTEXTO LOCAL (NÃO sobrescreve o original) =====
