@@ -45,6 +45,10 @@ module.exports = (client, context) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
+        // 🔍 DIAGNÓSTICO
+        console.log("CANAL CONFIG:", context.getCanalFilaCompleta && context.getCanalFilaCompleta());
+        console.log("CANAL MSG:", message.channel.id);
+
         // 🔒 BLOQUEIO CORRIGIDO (usa context real)
         if (
             context.getCanalFilaCompleta &&
