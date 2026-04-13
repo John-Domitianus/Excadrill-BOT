@@ -9,8 +9,8 @@ module.exports = async (message, context) => {
 
     // Opcões de tag com suporte prw adicionar mais no futuro
     const TAGS = {
-        "1": "ᖇᏀᑎㅹ",
-        "2": "ᖇᏀ²ㅹ"
+        "1": "†VΛL†",
+        "2": "†VΛL²†"
     };
 
     // Iniciar comando pergutando sobre a tag
@@ -21,7 +21,7 @@ module.exports = async (message, context) => {
         };
 
         return message.reply(
-            "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀ²ㅹ\n\nDigite apenas o número."
+            "🏷️ Escolha sua tag:\n\n1️⃣ †VΛL†\n2️⃣ †VΛL²†\n\nDigite apenas o número."
         );
         return true;
     }
