@@ -35,11 +35,6 @@ module.exports = (client, context) => {
                 .setCustomId("simulate_guerra")
                 .setLabel("Guerra")
                 .setStyle(ButtonStyle.Danger),
-
-            new ButtonBuilder()
-                .setCustomId("simulate_nick")
-                .setLabel("Nick")
-                .setStyle(ButtonStyle.Secondary)
         );
 
         await message.reply({ embeds: [embed], components: [row] });
@@ -53,7 +48,6 @@ module.exports = (client, context) => {
             case "simulate_admin": commandText = "!admin"; break;
             case "simulate_makyo": commandText = "!makyo"; break;
             case "simulate_guerra": commandText = "!guerra"; break;
-            case "simulate_nick": commandText = "!nick"; break;
         }
 
         if (!commandText) return;
