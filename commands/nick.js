@@ -9,8 +9,8 @@ module.exports = async (message, context) => {
 
     // Opcões de tag com suporte prw adicionar mais no futuro
     const TAGS = {
-        "1": "†VΛL†",
-        "2": "†VΛL²†"
+        "1": "ᖇᏀᑎㅹ",
+        "2": "ᖇᏀᑎ²ㅹ"
     };
 
     // Iniciar comando pergutando sobre a tag
