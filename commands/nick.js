@@ -21,7 +21,7 @@ module.exports = async (message, context) => {
         };
 
         return message.reply(
-            "🏷️ Escolha sua tag:\n\n1️⃣ †VΛL†\n2️⃣ †VΛL²†\n\nDigite apenas o número."
+            "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀᑎ²ㅹ\n\nDigite apenas o número."
         );
         return true;
     }
