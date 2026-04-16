@@ -46,10 +46,6 @@ module.exports = (client, context) => {
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
-        // 🔍 DIAGNÓSTICO
-        console.log("CANAL CONFIG:", context.getCanalFilaCompleta && context.getCanalFilaCompleta());
-        console.log("CANAL MSG:", message.channel.id);
-
         // 🔒 BLOQUEIO APENAS PARA COMANDOS DO BOT
         const comandoNome = message.content.startsWith("!")
             ? message.content.slice(1).split(" ")[0].toLowerCase()
