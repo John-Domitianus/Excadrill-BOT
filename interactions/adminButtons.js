@@ -314,7 +314,7 @@ module.exports = async (data, context) => {
                         await member.ban({ reason: motivo });
 
                         // 🔥 PEGA O CANAL CORRETO DO BAN PELO DATA MANAGER
-                        const dataManager = require("../utils/datamanager"); // ajuste o caminho
+                        const dataManager = require("../services/dataManager"); // ajuste o caminho
                         const canalId = dataManager.getCanalBan();
 
                         const canalLog = canalId
