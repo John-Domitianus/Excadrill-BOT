@@ -1,23 +1,38 @@
-﻿const { PermissionsBitField } = require("discord.js");
-const { canalBan, salvarDados } = require("../services/dataManager");
+﻿const {
+    PermissionsBitField,
+    ActionRowBuilder,
+    ChannelSelectMenuBuilder,
+    ChannelType,
+    EmbedBuilder
+} = require("discord.js");
 
-module.exports = async (message, context) => {
-    const prefix = "!"; // prefixo padrão
-    if (!message.content.startsWith(prefix + "setban")) return;
+module.exports = async (message) => {
+    // Verifica comando
+    if (!message.content.startsWith("!setban")) return;
 
-    // Verifica permissão
+    // Permissão
     if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-        return message.reply("❌ Você precisa ser administrador para usar este comando.");
+        return message.reply("❌ | Você precisa ser administrador.");
     }
 
-    // Pega o canal marcado ou ID
-    const args = message.content.slice(prefix.length + 6).trim().split(/ +/);
-    const canal = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
-    if (!canal) return message.reply("❌ Marque um canal válido ou passe o ID do canal.");
+    // Embed
+    const embed = new EmbedBuilder()
+        .setColor(0xED4245)
+        .setTitle("🚫 Configurar canal de ban")
+        .setDescription("Selecione o canal onde serão enviados os **logs de banimento**.");
 
-    // Salva no dataManager
-    context.canalBan = canal.id;
-    await salvarDados();
+    // Menu
+    const menu = new ChannelSelectMenuBuilder()
+        .setCustomId("select_ban") // IMPORTANTE
+        .setPlaceholder("Selecione um canal...")
+        .setMinValues(1)
+        .setMaxValues(1)
+        .addChannelTypes(ChannelType.GuildText);
 
-    return message.reply(`✅ Canal de ban definido para ${canal}`);
+    const row = new ActionRowBuilder().addComponents(menu);
+
+    await message.channel.send({
+        embeds: [embed],
+        components: [row]
+    });
 };

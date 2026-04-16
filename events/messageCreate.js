@@ -6,7 +6,8 @@ const nickCmd = require("../commands/nick");
 const makyoCmd = require("../commands/makyo");
 const guerraCmd = require("../commands/guerra");
 const adminCmd = require("../commands/admin");
-const setfilaCmd = require("../commands/setfila"); // ✅ ADICIONADO
+const setfilaCmd = require("../commands/setfila");
+const setbanCmd = require("../commands/setban");
 
 const {
     salvarDados,
@@ -76,7 +77,7 @@ module.exports = (client, context) => {
         
         const content = message.content.trim();
 
-        // ===== CONTEXTO LOCAL (NÃO sobrescreve o original) =====
+        // ===== CONTEXTO LOCAL =====
         const localContext = {
             fluxoNick,
             esperandoNick,
@@ -119,6 +120,9 @@ module.exports = (client, context) => {
 
             else if (lower.startsWith("!setfila")) {
                 await setfilaCmd(message, localContext);
+            }
+            else if (lower.startsWith("!setban")) {
+                await setbanCmd(message, context);
             }
 
             // ===== FLUXOS =====

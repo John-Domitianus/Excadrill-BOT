@@ -24,6 +24,7 @@ module.exports = (client, context) => {
 
         // ================= SELECT MENU =================
         if (interaction.isChannelSelectMenu()) {
+
             if (interaction.customId === "select_fila") {
                 const canalId = interaction.values[0];
 
@@ -31,7 +32,6 @@ module.exports = (client, context) => {
 
                 try {
                     context.setCanalFilaCompleta(canalId);
-
                     await salvarDados();
 
                     await interaction.editReply({
@@ -45,11 +45,31 @@ module.exports = (client, context) => {
                         content: "❌ Erro ao salvar o canal."
                     });
                 }
+
+            } else if (interaction.customId === "select_ban") {
+                const canalId = interaction.values[0];
+
+                await interaction.deferReply({ ephemeral: true });
+
+                try {
+                    context.setCanalBan(canalId);
+                    await salvarDados();
+
+                    await interaction.editReply({
+                        content: `✅ | Canal de ban definido para <#${canalId}>`
+                    });
+
+                } catch (err) {
+                    console.error("Erro ao salvar canal de ban:", err);
+
+                    await interaction.editReply({
+                        content: "❌ Erro ao salvar o canal de ban."
+                    });
+                }
             }
 
-            return; // 🚨 impede cair nos botões
+            return; // 🔴 ESSENCIAL — aqui fora
         }
-
         // ================= BOTÕES =================
         if (!interaction.deferred && !interaction.replied) {
             await interaction.deferUpdate();
