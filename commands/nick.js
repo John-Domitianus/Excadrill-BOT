@@ -81,7 +81,11 @@ module.exports = async (message, context) => {
 
             delete context.fluxoNick[message.author.id];
 
-            console.log("[SUCESSO] Nickname alterado com sucesso");
+            const nickAntigo = message.member.displayName;
+
+            await message.member.setNickname(nickFinal);
+
+            console.log(`Nickname alterado de "${nickAntigo}" para "${nickFinal}"`);
 
             return message.reply({
                 embeds: [embedSucesso(`Seu nickname foi alterado para **${nickFinal}**.`)]
