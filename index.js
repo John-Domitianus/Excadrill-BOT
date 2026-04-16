@@ -22,6 +22,7 @@ require("./database/connect")();
 
 // ===== CONTEXTO =====
 const context = {
+    fluxoNick: {},
     client,
     ...dataManager,
     dadosCarregados: false

@@ -30,7 +30,6 @@ let esperandoUnban = null;
 let esperandoBlacklist = null;
 let etapaBlacklist = null;
 let tempBlacklist = null;
-let fluxoNick = {};
 
 function hoje() {
     const d = new Date();
@@ -75,7 +74,7 @@ module.exports = (client, context) => {
 
         // ===== CONTEXTO LOCAL =====
         const localContext = {
-            fluxoNick,
+            fluxoNick: context.fluxoNick,
             esperandoNick,
             esperandoBan,
             esperandoUnban,
@@ -123,7 +122,7 @@ module.exports = (client, context) => {
 
             // ===== FLUXOS =====
             else if (
-                fluxoNick[message.author.id] ||
+                context.fluxoNick[message.author.id] ||
                 esperandoNick === message.author.id
             ) {
                 await nickCmd(message, localContext);
@@ -140,6 +139,5 @@ module.exports = (client, context) => {
         esperandoBlacklist = localContext.esperandoBlacklist;
         etapaBlacklist = localContext.etapaBlacklist;
         tempBlacklist = localContext.tempBlacklist;
-        fluxoNick = localContext.fluxoNick;
     });
 };
