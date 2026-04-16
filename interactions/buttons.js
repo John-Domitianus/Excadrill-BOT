@@ -20,8 +20,11 @@ module.exports = (client, context) => {
         if (!context.dadosCarregados) return;
 
         // ✅ aceita botão e select menu
-        if (!interaction.isButton() && !interaction.isChannelSelectMenu()) return;
-
+        if (
+            !interaction.isButton() &&
+            !interaction.isChannelSelectMenu() &&
+            !interaction.isStringSelectMenu()
+        ) return;
         // ================= SELECT MENU =================
         if (interaction.isChannelSelectMenu()) {
 
@@ -67,9 +70,35 @@ module.exports = (client, context) => {
                     });
                 }
             }
-
-            return; // 🔴 ESSENCIAL — aqui fora
+            
+            return; // 🔴 ESSENCIAL
         }
+
+        // 🔵 Select Menu para TAG (comando !nick)
+        if (interaction.isStringSelectMenu()) {
+            if (interaction.customId === "select_tag_nick") {
+
+                const escolha = interaction.values[0];
+
+                const TAGS = {
+                    "1": "ᖇᏀᑎㅹ",
+                    "2": "ᖇᏀᑎ²ㅹ"
+                };
+
+                context.fluxoNick[interaction.user.id] = {
+                    esperandoNick: true,
+                    tagEscolhida: TAGS[escolha]
+                };
+
+                await interaction.reply({
+                    content: "✏️ Agora escreva o seu nickname desejado.",
+                    ephemeral: true
+                });
+            }
+
+            return; // 🔴 IMPORTANTE
+        }
+
         // ================= BOTÕES =================
         if (!interaction.deferred && !interaction.replied) {
             await interaction.deferUpdate();

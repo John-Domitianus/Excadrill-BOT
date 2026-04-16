@@ -1,71 +1,64 @@
-﻿const { embedSucesso, embedErro } = require("../utils/embeds");
+﻿const {
+    ActionRowBuilder,
+    StringSelectMenuBuilder
+} = require("discord.js");
+
+const { embedSucesso, embedErro } = require("../utils/embeds");
 
 module.exports = async (message, context) => {
 
-    // Garantir estrutura de estado
+    // Garantir estrutura
     if (!context.fluxoNick) context.fluxoNick = {};
 
     const userState = context.fluxoNick[message.author.id] || {};
 
-    // Opcões de tag com suporte prw adicionar mais no futuro
+    // TAGS disponíveis
     const TAGS = {
         "1": "ᖇᏀᑎㅹ",
         "2": "ᖇᏀᑎ²ㅹ"
     };
 
-    // Iniciar comando pergutando sobre a tag
+    // ================= INICIAR COMANDO =================
     if (message.content === "!nick") {
 
-        context.fluxoNick[message.author.id] = {
-            escolhendoTag: true
-        };
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId("select_tag_nick")
+            .setPlaceholder("Selecione sua TAG")
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addOptions([
+                {
+                    label: "ᖇᏀᑎㅹ",
+                    value: "1"
+                },
+                {
+                    label: "ᖇᏀᑎ²ㅹ",
+                    value: "2"
+                }
+            ]);
 
-        return message.reply(
-            "🏷️ Escolha sua tag:\n\n1️⃣ ᖇᏀᑎㅹ\n2️⃣ ᖇᏀᑎ²ㅹ\n\nDigite apenas o número."
-        );
-        return true;
+        const row = new ActionRowBuilder().addComponents(menu);
+
+        return message.reply({
+            content: "🏷️ Escolha sua tag:",
+            components: [row]
+        });
     }
 
-    // Escolher TAG Aqui
-    if (userState.escolhendoTag) {
-
-        const escolha = message.content.trim();
-
-        if (!TAGS[escolha]) {
-
-            return message.reply("❌ Opção inválida. Digite 1 ou 2.");
-            return true;
-        }
-
-
-        context.fluxoNick[message.author.id] = {
-            esperandoNick: true,
-            tagEscolhida: TAGS[escolha]
-        };
-
-        return message.reply("✏️ Agora escreva o seu nickname desejado.");
-        return true;
-    }
-
-    // Definir nickname
+    // ================= DEFINIR NICK =================
     if (userState.esperandoNick) {
 
         const novoNick = message.content.trim();
-
         const TAG = userState.tagEscolhida || "ᖇᏀᑎㅹ";
 
         const maxLength = 32 - (TAG.length + 1);
 
         if (novoNick.length < 2 || novoNick.length > maxLength) {
-
             return message.reply(`❌ O nickname deve ter entre 2 e ${maxLength} caracteres.`);
-            return true;
         }
 
         if (novoNick.includes("@") || novoNick.toLowerCase().includes("discord.gg")) {
-
             return message.reply("❌ Nickname inválido.");
-            return true;
         }
 
         try {
@@ -77,20 +70,17 @@ module.exports = async (message, context) => {
 
             const nickFinal = `${TAG} ${nickLimpo}`;
 
-            await message.member.setNickname(nickFinal);
-
-            delete context.fluxoNick[message.author.id];
-
             const nickAntigo = message.member.displayName;
 
             await message.member.setNickname(nickFinal);
+
+            delete context.fluxoNick[message.author.id];
 
             console.log(`Nickname alterado de "${nickAntigo}" para "${nickFinal}"`);
 
             return message.reply({
                 embeds: [embedSucesso(`Seu nickname foi alterado para **${nickFinal}**.`)]
             });
-            return true;
 
         } catch (err) {
 
@@ -99,7 +89,6 @@ module.exports = async (message, context) => {
             return message.reply({
                 embeds: [embedErro("Não consegui alterar seu nickname. Verifique minhas permissões.")]
             });
-            return true;
         }
     }
 };
