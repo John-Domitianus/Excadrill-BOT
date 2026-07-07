@@ -14,8 +14,7 @@ module.exports = async (message, context) => {
 
     // TAGS disponíveis
     const TAGS = {
-        "1": "ᖇᏀᑎㅹ",
-        "2": "ᖇᏀᑎ²ㅹ"
+        "1": "𝒔𝒖𝒃𝒕 º"
     };
 
     // ================= INICIAR COMANDO =================
@@ -28,13 +27,9 @@ module.exports = async (message, context) => {
             .setMaxValues(1)
             .addOptions([
                 {
-                    label: "ᖇᏀᑎㅹ",
+                    label: "𝒔𝒖𝒃𝒕º",
                     value: "1"
-                },
-                {
-                    label: "ᖇᏀᑎ²ㅹ",
-                    value: "2"
-                }
+                } 
             ]);
 
         const row = new ActionRowBuilder().addComponents(menu);

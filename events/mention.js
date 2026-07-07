@@ -10,13 +10,13 @@ module.exports = (client, context) => {
         if (message.content !== botMention && message.content !== botNicknameMention) return;
 
         const embed = new EmbedBuilder()
-            .setTitle("🤖 Pyaku BOT")
+            .setTitle("Clã Buraco - Excadrill")
             .setDescription(
                 "Clique nos botões abaixo para executar os comandos desejados.\n\n" +
-                "• `Admin` — Painel de administração\n" +
-                "• `Makyo` — Filas do Makyo\n" +
-                "• `Guerra` — Filas da Guerra\n" +
-                "• `Nick` — Alterar seu nickname"
+                "• `Admin` — Painel de administração (para administradores)\n" +
+                "• `Eventos` — Painel exclusivo de Eventos\n" +
+                "• `Torneio` — Inscrições do Torneio atual\n" +
+                "• `Nick` — Altere seu nickname para o mesmo do jogo (com a tag do clã)"
             )
             .setColor(0x00FFFF);
 
@@ -27,14 +27,19 @@ module.exports = (client, context) => {
                 .setStyle(ButtonStyle.Primary),
 
             new ButtonBuilder()
-                .setCustomId("simulate_makyo")
-                .setLabel("Makyo")
+                .setCustomId("simulate_eventos")
+                .setLabel("Eventos")
                 .setStyle(ButtonStyle.Success),
 
             new ButtonBuilder()
-                .setCustomId("simulate_guerra")
-                .setLabel("Guerra")
+                .setCustomId("simulate_torneio")
+                .setLabel("Torneio")
                 .setStyle(ButtonStyle.Danger),
+
+            new ButtonBuilder()
+                .setCustomId("simulate_nick")
+                .setLabel("Nick")
+                .setStyle(ButtonStyle.Secondary),
         );
 
         await message.reply({ embeds: [embed], components: [row] });
@@ -46,8 +51,9 @@ module.exports = (client, context) => {
         let commandText;
         switch (interaction.customId) {
             case "simulate_admin": commandText = "!admin"; break;
-            case "simulate_makyo": commandText = "!makyo"; break;
-            case "simulate_guerra": commandText = "!guerra"; break;
+            case "simulate_eventos": commandText = "!eventos"; break;
+            case "simulate_torneio": commandText = "!torneio"; break;
+            case "simulate_nick": commandText = "!nick"; break;
         }
 
         if (!commandText) return;
